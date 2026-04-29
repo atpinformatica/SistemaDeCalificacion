@@ -337,7 +337,7 @@ const frasesPorMateria = {
 
 let tabActual = 'espacios';
 let memoriaGlobal = JSON.parse(localStorage.getItem('asistenteNotasMemoria')) || {};
-const URL_WEB_APP = 'https://script.google.com/a/macros/cpem32.edu.ar/s/AKfycbygieQv1ZA_TbpkKzKGFnHp1gNYf6Bn0j4UpxEnkithb32l7Nof9u3RsqZt1wTZErLlXA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 // 2. FUNCIONES DE ACCESO Y APOYO (Se mantienen igual)
 function verificarAcceso() {
