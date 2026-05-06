@@ -1,6 +1,6 @@
 // 1. BASE DE DATOS Y VARIABLES (Se mantienen igual)
 const CLAVE_ACCESO = "1234"; 
-
+const escalaConceptos = ["Excelente", "Muy Bien", "Bien", "Regular", "Ausente", "Sin Calificar"];
 const baseDeDatosAlumnos = {
     "MAÑANA": {
         "1 A": [{ "dni": "1", "nombre": "CASTRO GORJÓN, Isabella" },
@@ -326,7 +326,7 @@ const materiasPorCurso = {
     
 };
 const criteriosCualitativos = ["Interpreta", "Relaciona", "Aplica", "Participación", "Autonomía", "Realización de TP", "Cumplimiento AEC"];
-const opcionesCualitativas = ["-", "Excelente", "Muy Bien", "Bien", "Frecuentemente", "A veces", "Siempre", "Regular"];
+const opcionesCualitativas = ["-", "Siempre", "Frecuentemente", "A veces", "Nunca", "Sin referencia"];
 const frasesPorMateria = {
     "MATEMATICA": ["Resuelve problemas con autonomía", "Requiere reforzar operaciones básicas", "Buen razonamiento lógico"],
     "ANALISIS": ["Deriva e integra correctamente", "Aplica conceptos a funciones complejas", "Requiere práctica en límites"],
@@ -337,7 +337,7 @@ const frasesPorMateria = {
 
 let tabActual = 'espacios';
 let memoriaGlobal = JSON.parse(localStorage.getItem('asistenteNotasMemoria')) || {};
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxYoEbDamqWf6awEXKniSiC0AITp1ir0rypbM5oENyq-fNp5SRMTh4xdC4yOl3dvm-7dQ/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 // 2. FUNCIONES DE ACCESO Y APOYO (Se mantienen igual)
 function verificarAcceso() {
@@ -602,9 +602,21 @@ function cargarAlumnos() {
             const n = persistido.nota || "";
             html += `<td><select class="nota-input select-nota" onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'nota', this.value)">
                         <option value="">-</option>`;
-            for(let i=1; i<=10; i++) html += `<option value="${i}" ${n==i?'selected':''}>${i}</option>`;
-            html += `</select></td>`;
+          
+            //NOTAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            // Usamos la nueva escala conceptual en lugar de números  AQUI SE REALIZA LA LOS CAMBIOS BIMESTRE 
+                escalaConceptos.forEach(e => {
+                 html += `<option value="${e}" ${n == e ? 'selected' : ''}>${e}</option>`;
+             });
+             html += `</select></td>`;
             
+            //ACTIVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            //-----SE DEBE ACTIVAR ESTE CODIGO----- PARA QUE SE ACTIVEN LAS NOTAS DE 1 AL 10 AL CUATRIMESTRE
+            // for(let i=1; i<=10; i++) html += `<option value="${i}" ${n==i?'selected':''}>${i}</option>`;
+            // html += `</select></td>`;
+            
+
+
             if (añoCurso >= 4 || periodo.includes("Bimestre")) {
                 const valP = persistido[`sel_1`] || "";
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">
