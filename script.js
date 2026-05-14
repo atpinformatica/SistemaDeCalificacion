@@ -17,7 +17,7 @@ const baseDeDatosAlumnos = {
                 { "dni": "12", "nombre": "ULLOA, Guadalupe Abigail" },
                 { "dni": "13", "nombre": "VALENZUELA, Ana Sofia" }],
 
-        "1 D": [{ "dni": "1", "nombre": "ALVEAR, Rut Isabel" },
+        "1 D": [{ "dni": "1", "nombre": "ALVEAR, Rut Isabella" },
                 { "dni": "2", "nombre": "ARAYA ALFARO, Mario Sebastian" },
                 { "dni": "3", "nombre": "ARAYA, Briana Martina" },
                 { "dni": "4", "nombre": "EPULLAN, Sol Alen" },
