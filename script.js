@@ -93,7 +93,7 @@ const baseDeDatosAlumnos = {
                 { "dni": "7", "nombre": "MORERO FERNANDEZ, Lorenzo Benjamín" },
                 { "dni": "8", "nombre": "NAVARRO, Jazmin Aixa" },
                 { "dni": "9", "nombre": "PAEZ CASTILLO, Valentina" },
-                { "dni": "10", "nombre": "PAVÓN, Nicolás" },
+                { "dni": "10", "nombre": "PAVÓN, Gael Nicolás" },
                 { "dni": "11", "nombre": "QUIÑINAO COLIPI, Valentina Daiana" },
                 { "dni": "12", "nombre": "TAPIA, Sofia Isabel" },
                 { "dni": "13", "nombre": "TORRES, Mia Florencia" },
