@@ -301,7 +301,10 @@ const baseDeDatosAlumnos = {
                 { "dni": "7", "nombre": "SARMIENTO HERNANDEZ, Bruno Gaston" },
                 { "dni": "8", "nombre": "TORRES, Gaston Matías Unelen" },
                 { "dni": "9", "nombre": "VAZQUEZ RAPIMAN, Karina Lucia" },
-                { "dni": "10", "nombre": "ZAPATA, Milagros Valentina" }]
+                { "dni": "10", "nombre": "ZAPATA, Milagros Valentina" },
+                { "dni": "11", "nombre": "RANGUILEO, Emilse Malen" },
+                { "dni": "12", "nombre": "RODRIGUEZ, Mical Ruth" },
+                { "dni": "13", "nombre": "AGUIRRE, Maximiliano" },]
     }
 };
 
