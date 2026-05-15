@@ -305,6 +305,7 @@ const baseDeDatosAlumnos = {
     }
 };
 
+
 const materiasPorCurso = {
     "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACIÓN FÍSICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACIÓN FÍSICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
@@ -337,8 +338,100 @@ const frasesPorMateria = {
 };
 
 let tabActual = 'espacios';
-let memoriaGlobal = JSON.parse(localStorage.getItem('asistenteNotasMemoria')) || {};
+let memoriaGlobal = {}; // Ya no usa localStorage — se carga desde Google Sheets al iniciar
+let datosSheetsCargados = false; // Bandera para saber si ya terminó la carga inicial
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxYoEbDamqWf6awEXKniSiC0AITp1ir0rypbM5oENyq-fNp5SRMTh4xdC4yOl3dvm-7dQ/exec';
+
+/**
+ * Normaliza un nombre para comparación robusta:
+ * quita espacios extra, pasa a mayúsculas y elimina tildes.
+ * Así "CASTRO GORJÓN, Isabella" == "Castro Gorjon,  Isabella" == true
+ */
+function normalizarNombre(str) {
+    return str
+        .trim()
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+        .replace(/\s+/g, " ");           // colapsa espacios múltiples
+}
+
+/**
+ * Carga todos los datos guardados desde Google Sheets al iniciar la app.
+ * Usa el nombre normalizado como clave de búsqueda para evitar fallos
+ * por tildes, espacios o mayúsculas distintas entre Sheets y la base local.
+ */
+async function cargarDesdeSheetsAlIniciar() {
+    const tbody = document.querySelector('#tabla-notas tbody');
+    tbody.innerHTML = `<tr><td colspan="10" style="padding:30px;text-align:center;color:#007bff;">
+        <i class="fas fa-spinner fa-spin"></i> Cargando datos desde el servidor...
+    </td></tr>`;
+
+    try {
+        const resp = await fetch(URL_WEB_APP, { method: 'GET', mode: 'cors' });
+        const filas = await resp.json();
+
+        if (filas.error) throw new Error(filas.error);
+
+        let cargados = 0;
+        let noEncontrados = [];
+
+        filas.forEach(item => {
+            // Normalizar periodo: Sheets guarda "1er Cuatrimestre", la app usa "1"
+            let periodoInterno = item.periodo;
+            if (item.periodo === "1er Cuatrimestre") periodoInterno = "1";
+            if (item.periodo === "2do Cuatrimestre")  periodoInterno = "2";
+
+            const llave = `${item.turno}-${item.curso}-${item.materia}-${periodoInterno}`;
+
+            // Buscar el alumno por nombre normalizado (tolerante a tildes y espacios)
+            const turnoData = baseDeDatosAlumnos[item.turno];
+            if (!turnoData || !turnoData[item.curso]) return;
+
+            const nombreBuscado = normalizarNombre(item.nombre);
+            const alumno = turnoData[item.curso].find(
+                a => normalizarNombre(a.nombre) === nombreBuscado
+            );
+
+            if (!alumno) {
+                noEncontrados.push(`"${item.nombre}" (${item.curso} / ${item.turno})`);
+                return;
+            }
+
+            if (!memoriaGlobal[llave]) memoriaGlobal[llave] = {};
+            memoriaGlobal[llave][alumno.dni] = {
+                nota:                  item.nota             || "",
+                sel_1:                 item.obs1             || "",
+                sel_2:                 item.obs2             || "",
+                sel_3:                 item.obs3             || "",
+                observacion:           item.obs4             || "",
+                "Interpreta":          item.interpreta       || "-",
+                "Relaciona":           item.relaciona        || "-",
+                "Aplica":              item.aplica           || "-",
+                "Participación":       item.participacion    || "-",
+                "Autonomía":           item.autonomia        || "-",
+                "Realización de TP":   item.realizacion_tp   || "-",
+                "Cumplimiento AEC":    item.cumplimiento_aec || "-"
+            };
+            cargados++;
+        });
+
+        datosSheetsCargados = true;
+        console.log(`✅ ${cargados} registros cargados desde Sheets.`);
+        if (noEncontrados.length > 0) {
+            console.warn("⚠️ Nombres en Sheets que no coinciden con la base local:", noEncontrados);
+        }
+
+    } catch (err) {
+        console.warn("⚠️ No se pudo cargar desde Sheets, se usará memoria vacía.", err);
+        datosSheetsCargados = true;
+    }
+
+    // Restaurar mensaje inicial de la tabla
+    tbody.innerHTML = `<tr><td colspan="10" style="padding:30px;color:#777;text-align:center;">
+        <i class="fas fa-filter"></i> Seleccione todos los filtros para visualizar la lista de alumnos
+    </td></tr>`;
+}
 
 // 2. FUNCIONES DE ACCESO Y APOYO (Se mantienen igual)
 function verificarAcceso() {
@@ -449,7 +542,7 @@ function respaldarAPantallaAMemoria() {
         const txtObs = fila.querySelector('.text-obs');
         if (txtObs) memoriaGlobal[llaveID][dni].observacion = txtObs.value;
     });
-    localStorage.setItem('asistenteNotasMemoria', JSON.stringify(memoriaGlobal));
+    // Nota: ya no guardamos en localStorage. Los datos persisten en Google Sheets al presionar "Guardar".
 }
 
 function switchTab(tab) {
@@ -658,7 +751,7 @@ function cargarAlumnos() {
     });
 }
 
-// 4. EVENTOS (Se mantienen igual)
+// 4. EVENTOS
 document.addEventListener('DOMContentLoaded', () => {
     if (sessionStorage.getItem('autenticado') === 'true') {
         const overlay = document.getElementById('login-overlay');
@@ -677,7 +770,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('nota-input')) respaldarAPantallaAMemoria();
     });
     document.getElementById('btnGuardar').onclick = guardarEnGoogleSheets;
-    document.getElementById('btnLimpiar').onclick = () => { if(confirm("¿Borrar todo?")) { localStorage.clear(); location.reload(); }};
+    // Botón limpiar: ahora solo limpia la memoria en RAM de esta sesión (los datos en Sheets no se tocan)
+    document.getElementById('btnLimpiar').onclick = () => {
+        if(confirm("¿Limpiar la memoria de esta sesión? Los datos guardados en Sheets no se borran.")) {
+            memoriaGlobal = {};
+            location.reload();
+        }
+    };
+
+    // *** CLAVE: Cargar datos desde Google Sheets al abrir la app ***
+    cargarDesdeSheetsAlIniciar();
 });
 
 // 5. GUARDAR DATOS (VERSIÓN CORREGIDA 2026)
