@@ -340,7 +340,7 @@ const frasesPorMateria = {
 let tabActual = 'espacios';
 let memoriaGlobal = {}; // Ya no usa localStorage — se carga desde Google Sheets al iniciar
 let datosSheetsCargados = false; // Bandera para saber si ya terminó la carga inicial
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxYoEbDamqWf6awEXKniSiC0AITp1ir0rypbM5oENyq-fNp5SRMTh4xdC4yOl3dvm-7dQ/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbzNrBdKN-ZuPyK1JjV48_-OiHr6PN9dsttQhPAV2N4OeekFegZ1mXnV54VUfTDVIu2yRA/exec';
 
 /**
  * Normaliza un nombre para comparación robusta:
