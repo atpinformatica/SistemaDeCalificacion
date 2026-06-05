@@ -6,7 +6,7 @@
 // 1. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
 
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycby85kxryNjFUrnFhG5736tIIF3_yYA9-6Iw1EVDeIb2rpc-scRXNh6dlC894eZQInq3gA/exec';
 
 const escalaConceptos = ["Excelente", "Muy Bien", "Bien", "Regular", "Ausente", "Sin Calificar"];
 const criteriosCualitativos = ["Interpreta", "Relaciona", "Aplica", "Participacion", "Autonomia", "Realizacion de TP", "Cumplimiento AEC"];
