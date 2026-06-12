@@ -6,7 +6,7 @@
 // 1. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
 
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const escalaConceptos = ["Excelente", "Muy Bien", "Bien", "Regular", "Ausente", "Sin Calificar"];
 const criteriosCualitativos = ["Interpreta", "Relaciona", "Aplica", "Participacion", "Autonomia", "Realizacion de TP", "Cumplimiento AEC"];
@@ -1687,10 +1687,44 @@ function obtenerTodosLosCursos() {
 
 function obtenerTodasLasMaterias() {
     const todas = new Set();
-    Object.values(materiasPorCurso).forEach(arr => {
-        arr.forEach(m => todas.add(m));
+    const yaExpandidas = new Set();
+    Object.entries(materiasPorCurso).forEach(([curso, arr]) => {
+        const grado = parseInt(curso.split(' ')[0], 10);
+        const esSuperior = grado >= 4;
+        arr.forEach(m => {
+            if (esSuperior) {
+                todas.add(m);
+            } else {
+                const subjectsForArea = Object.keys(areasPorMateria).filter(k =>
+                    areasPorMateria[k] === m && k !== m
+                );
+                if (subjectsForArea.length > 0) {
+                    subjectsForArea.forEach(sub => {
+                        todas.add(m + ' (' + sub + ')');
+                        yaExpandidas.add(sub);
+                    });
+                } else if (!yaExpandidas.has(m)) {
+                    todas.add(m);
+                }
+            }
+        });
     });
     return Array.from(todas).sort();
+}
+
+function extraerMateriaDeDisplay(valor) {
+    const match = valor.match(/\((.+)\)$/);
+    return match ? match[1].trim() : valor.trim();
+}
+
+function filtrarMaterias(input) {
+    const texto = input.value.toLowerCase().trim();
+    const container = input.closest('.form-group') || input.parentElement;
+    const labels = container.querySelectorAll('.materias-checklist label');
+    labels.forEach(label => {
+        const matches = !texto || label.textContent.toLowerCase().includes(texto);
+        label.style.display = matches ? '' : 'none';
+    });
 }
 
 async function cargarRecursantes() {
@@ -2134,7 +2168,7 @@ async function confirmarAgregarUsuario() {
     
     const materiasSeleccionadas = [];
     document.querySelectorAll('#materias-multiselect input:checked').forEach(cb => {
-        materiasSeleccionadas.push(cb.value);
+        materiasSeleccionadas.push(extraerMateriaDeDisplay(cb.value));
     });
     
     const cursosSeleccionados = [];
@@ -2206,7 +2240,8 @@ function abrirModalMaterias(correo) {
     });
     
     materias.forEach(m => {
-        const checked = materiasActuales.indexOf(m) !== -1 ? 'checked' : '';
+        const materiaBase = extraerMateriaDeDisplay(m);
+        const checked = (materiasActuales.indexOf(m) !== -1 || materiasActuales.indexOf(materiaBase) !== -1) ? 'checked' : '';
         containerMat.innerHTML += `<label class="check-item"><input type="checkbox" value="${m}" ${checked}> ${m}</label>`;
     });
     
@@ -2221,7 +2256,7 @@ function abrirModalMaterias(correo) {
 async function confirmarEditarMaterias() {
     const materiasSeleccionadas = [];
     document.querySelectorAll('#materias-editar-checklist input:checked').forEach(cb => {
-        materiasSeleccionadas.push(cb.value);
+        materiasSeleccionadas.push(extraerMateriaDeDisplay(cb.value));
     });
     
     const cursosSeleccionados = [];
