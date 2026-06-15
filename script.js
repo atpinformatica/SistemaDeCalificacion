@@ -1686,22 +1686,31 @@ function obtenerTodosLosCursos() {
 }
 
 function obtenerTodasLasMaterias() {
+    const enCuarto = new Set();
+    const enQuinto = new Set();
+    Object.entries(materiasPorCurso).forEach(([curso, arr]) => {
+        const grado = parseInt(curso.split(' ')[0], 10);
+        if (grado === 4) arr.forEach(m => enCuarto.add(m));
+        if (grado === 5) arr.forEach(m => enQuinto.add(m));
+    });
+    const soloQuinto = new Set([...enQuinto].filter(m => !enCuarto.has(m)));
+
     const todas = new Set();
     const yaExpandidas = new Set();
-    const deSuperior = new Set();
     Object.entries(materiasPorCurso).forEach(([curso, arr]) => {
         const grado = parseInt(curso.split(' ')[0], 10);
         arr.forEach(m => {
             if (grado >= 4) {
                 todas.add(m);
-                deSuperior.add(m);
             } else {
                 const subjectsForArea = Object.keys(areasPorMateria).filter(k =>
                     areasPorMateria[k] === m && k !== m
                 );
                 if (subjectsForArea.length > 0) {
                     subjectsForArea.forEach(sub => {
-                        todas.add(m + ' (' + sub + ')');
+                        if (!soloQuinto.has(sub)) {
+                            todas.add(m + ' (' + sub + ')');
+                        }
                         yaExpandidas.add(sub);
                     });
                 } else if (!yaExpandidas.has(m)) {
@@ -1710,10 +1719,7 @@ function obtenerTodasLasMaterias() {
             }
         });
     });
-    return Array.from(todas).filter(item => {
-        const match = item.match(/\((.+)\)$/);
-        return !(match && deSuperior.has(match[1]));
-    }).sort();
+    return Array.from(todas).sort();
 }
 
 function extraerMateriaDeDisplay(valor) {
