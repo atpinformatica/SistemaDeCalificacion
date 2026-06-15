@@ -6,7 +6,7 @@
 // 1. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
 
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const escalaConceptos = ["Excelente", "Muy Bien", "Bien", "Regular", "Ausente", "Sin Calificar"];
 const criteriosCualitativos = ["Interpreta", "Relaciona", "Aplica", "Participacion", "Autonomia", "Realizacion de TP", "Cumplimiento AEC"];
@@ -1688,12 +1688,13 @@ function obtenerTodosLosCursos() {
 function obtenerTodasLasMaterias() {
     const todas = new Set();
     const yaExpandidas = new Set();
+    const deSuperior = new Set();
     Object.entries(materiasPorCurso).forEach(([curso, arr]) => {
         const grado = parseInt(curso.split(' ')[0], 10);
-        const esSuperior = grado >= 4;
         arr.forEach(m => {
-            if (esSuperior) {
+            if (grado >= 4) {
                 todas.add(m);
+                deSuperior.add(m);
             } else {
                 const subjectsForArea = Object.keys(areasPorMateria).filter(k =>
                     areasPorMateria[k] === m && k !== m
@@ -1709,7 +1710,10 @@ function obtenerTodasLasMaterias() {
             }
         });
     });
-    return Array.from(todas).sort();
+    return Array.from(todas).filter(item => {
+        const match = item.match(/\((.+)\)$/);
+        return !(match && deSuperior.has(match[1]));
+    }).sort();
 }
 
 function extraerMateriaDeDisplay(valor) {
