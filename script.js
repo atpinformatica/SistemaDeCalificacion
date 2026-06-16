@@ -1686,14 +1686,11 @@ function obtenerTodosLosCursos() {
 }
 
 function obtenerTodasLasMaterias() {
-    const enCuarto = new Set();
-    const enQuinto = new Set();
-    Object.entries(materiasPorCurso).forEach(([curso, arr]) => {
-        const grado = parseInt(curso.split(' ')[0], 10);
-        if (grado === 4) arr.forEach(m => enCuarto.add(m));
-        if (grado === 5) arr.forEach(m => enQuinto.add(m));
-    });
-    const soloQuinto = new Set([...enQuinto].filter(m => !enCuarto.has(m)));
+    // Sub-materias que forman parte del curriculo de 1°-3°
+    const subMaterias1_3 = new Set();
+    if (typeof MATERIAS_BIMESTRE_1_3 !== 'undefined') {
+        Object.values(MATERIAS_BIMESTRE_1_3).forEach(arr => arr.forEach(m => subMaterias1_3.add(m)));
+    }
 
     const todas = new Set();
     const yaExpandidas = new Set();
@@ -1708,7 +1705,7 @@ function obtenerTodasLasMaterias() {
                 );
                 if (subjectsForArea.length > 0) {
                     subjectsForArea.forEach(sub => {
-                        if (!soloQuinto.has(sub)) {
+                        if (subMaterias1_3.has(sub)) {
                             todas.add(m + ' (' + sub + ')');
                         }
                         yaExpandidas.add(sub);
