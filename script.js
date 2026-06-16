@@ -6,7 +6,7 @@
 // 1. CONSTANTES Y VARIABLES GLOBALES
 // ============================================================
 
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const escalaConceptos = ["Excelente", "Muy Bien", "Bien", "Regular", "Ausente", "Sin Calificar"];
 const criteriosCualitativos = ["Interpreta", "Relaciona", "Aplica", "Participacion", "Autonomia", "Realizacion de TP", "Cumplimiento AEC"];
@@ -3554,7 +3554,7 @@ function toggleBotonBorrado() {
 
 const AREAS_POR_CURSO = {
   "1 A": [
-    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIA","FILOSOFIA"] },
+    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIAS","FILOSOFIA"] },
     { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","TEATRO","MUSICA","ARTES VISUALES"] },
     { area: "Ciencias Naturales",                        materias: ["BIOLOGIA","FISICO QUIMICA"] },
     { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA"] },
@@ -3563,7 +3563,7 @@ const AREAS_POR_CURSO = {
     { area: "Interárea Tecnología",                      materias: ["INTEGRACION TECNOLOGICA"] }
   ],
   "3 A": [
-    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIA","FILOSOFIA"] },
+    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIAS","FILOSOFIA"] },
     { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","TEATRO","MUSICA","ARTES VISUALES"] },
     { area: "Ciencias Naturales",                        materias: ["BIOLOGIA","FISICO QUIMICA"] },
     { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA"] },
