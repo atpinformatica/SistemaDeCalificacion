@@ -347,7 +347,7 @@ let mainTabActual = 'calificaciones';
 let editandoCorreo = '';
 let alumnosDesdeSheets = [];
 let listaPreceptoresGlobal = [];
-let recursantesPorMateria = {};
+let recursantesAgrupados = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
@@ -636,12 +636,14 @@ async function cargarRecursantes() {
         });
         const res = await resp.json();
         if (res.success && res.recursantes) {
-            recursantesPorMateria = {};
+            recursantesAgrupados = {};
             res.recursantes.forEach(r => {
-                if (!recursantesPorMateria[r.curso]) recursantesPorMateria[r.curso] = {};
-                if (!recursantesPorMateria[r.curso][r.materia]) recursantesPorMateria[r.curso][r.materia] = [];
-                if (!recursantesPorMateria[r.curso][r.materia].some(e => e.dni === r.dni)) {
-                    recursantesPorMateria[r.curso][r.materia].push({ dni: r.dni, nombre: r.nombre, turno: r.turno });
+                if (!recursantesAgrupados[r.curso]) recursantesAgrupados[r.curso] = {};
+                if (!recursantesAgrupados[r.curso][r.dni]) {
+                    recursantesAgrupados[r.curso][r.dni] = { nombre: r.nombre, turno: r.turno, materias: [] };
+                }
+                if (!recursantesAgrupados[r.curso][r.dni].materias.includes(r.materia)) {
+                    recursantesAgrupados[r.curso][r.dni].materias.push(r.materia);
                 }
             });
         }
@@ -2093,15 +2095,14 @@ function renderizarTablaAlumnos() {
         });
     });
 
-    Object.keys(recursantesPorMateria).forEach(curso => {
-        Object.keys(recursantesPorMateria[curso]).forEach(materia => {
-            (recursantesPorMateria[curso][materia] || []).forEach(r => {
-                if (esPreceptor) {
-                    if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
-                    if (turnoPreceptor && (r.turno || '').trim().toUpperCase() !== turnoPreceptor) return;
-                }
-                alumnos.push({ nombre: r.nombre, dni: r.dni, turno: r.turno, curso, esRecursante: true, materia });
-            });
+    Object.keys(recursantesAgrupados).forEach(curso => {
+        Object.keys(recursantesAgrupados[curso]).forEach(dni => {
+            const r = recursantesAgrupados[curso][dni];
+            if (esPreceptor) {
+                if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
+                if (turnoPreceptor && (r.turno || '').trim().toUpperCase() !== turnoPreceptor) return;
+            }
+            alumnos.push({ nombre: r.nombre, dni, turno: r.turno, curso, esRecursante: true, materia: r.materias.join(', ') });
         });
     });
 
@@ -2132,7 +2133,7 @@ function renderizarTablaAlumnos() {
                     ? `<button class="btn-action" onclick="mostrarModalEditarRecursante('${a.turno}', '${a.curso}', '${a.dni}')" style="background:#ffc107;color:#333;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px;">
                            <i class="fas fa-edit"></i> Editar
                        </button>
-                       <button class="btn-action" onclick="eliminarRecursante('${a.turno}', '${a.curso}', '${a.materia}', '${a.dni}')" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+                       <button class="btn-action" onclick="eliminarRecursante('${a.turno}', '${a.curso}', '${a.dni}')" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
                            <i class="fas fa-trash-alt"></i> Eliminar
                        </button>`
                     : `<button class="btn-action" onclick="mostrarModalEditarAlumno('${a.turno}', '${a.curso}', '${a.dni}')" style="background:#ffc107;color:#333;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px;">
@@ -2321,9 +2322,8 @@ function mostrarModalEditarRecursante(turno, curso, dni) {
         if (opt.value === turno) { opt.selected = true; break; }
     }
 
-    const nombre = recursantesPorMateria[curso] && Object.values(recursantesPorMateria[curso])
-        .flat().find(r => r.dni === dni)?.nombre || '';
-    document.getElementById('recursante-nombre').value = nombre;
+    const r = recursantesAgrupados[curso]?.[dni];
+    document.getElementById('recursante-nombre').value = r?.nombre || '';
 
     actualizarMateriasRecursante(dni);
     document.getElementById('modal-agregar-recursante').style.display = 'flex';
@@ -2341,12 +2341,8 @@ function actualizarMateriasRecursante(dniEdit = '') {
     const materias = (materiasPorCurso[curso] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
 
     let materiasEdit = new Set();
-    if (dniEdit && recursantesPorMateria[curso]) {
-        Object.keys(recursantesPorMateria[curso]).forEach(mat => {
-            if (recursantesPorMateria[curso][mat].some(r => r.dni === dniEdit)) {
-                materiasEdit.add(mat);
-            }
-        });
+    if (dniEdit && recursantesAgrupados[curso]?.[dniEdit]) {
+        recursantesAgrupados[curso][dniEdit].materias.forEach(m => materiasEdit.add(m));
     }
 
     container.innerHTML = `
@@ -2406,10 +2402,14 @@ async function confirmarAgregarRecursante() {
         const resultado = await resp.json();
 
         if (resultado.success) {
-            if (!recursantesPorMateria[curso]) recursantesPorMateria[curso] = {};
+            if (!recursantesAgrupados[curso]) recursantesAgrupados[curso] = {};
+            if (!recursantesAgrupados[curso][dniTemporal]) {
+                recursantesAgrupados[curso][dniTemporal] = { nombre, turno, materias: [] };
+            }
             materias.forEach(mat => {
-                if (!recursantesPorMateria[curso][mat]) recursantesPorMateria[curso][mat] = [];
-                recursantesPorMateria[curso][mat].push({ nombre, dni: dniTemporal, turno });
+                if (!recursantesAgrupados[curso][dniTemporal].materias.includes(mat)) {
+                    recursantesAgrupados[curso][dniTemporal].materias.push(mat);
+                }
             });
 
             alert('Recursante agregado exitosamente');
@@ -2452,18 +2452,12 @@ async function confirmarEditarRecursante() {
         const resultado = await resp.json();
 
         if (resultado.success) {
-            // Actualizar local: borrar todas las entradas de este DNI y reinsertar
-            if (recursantesPorMateria[curso]) {
-                Object.keys(recursantesPorMateria[curso]).forEach(mat => {
-                    recursantesPorMateria[curso][mat] = recursantesPorMateria[curso][mat].filter(r => r.dni !== dni);
-                    if (recursantesPorMateria[curso][mat].length === 0) delete recursantesPorMateria[curso][mat];
-                });
+            // Actualizar local: reemplazar entrada del DNI
+            if (recursantesAgrupados[curso]) {
+                delete recursantesAgrupados[curso][dni];
             }
-            materias.forEach(mat => {
-                if (!recursantesPorMateria[curso]) recursantesPorMateria[curso] = {};
-                if (!recursantesPorMateria[curso][mat]) recursantesPorMateria[curso][mat] = [];
-                recursantesPorMateria[curso][mat].push({ nombre, dni, turno });
-            });
+            if (!recursantesAgrupados[curso]) recursantesAgrupados[curso] = {};
+            recursantesAgrupados[curso][dni] = { nombre, turno, materias: [...materias] };
 
             alert('Recursante actualizado exitosamente');
             cerrarModal('modal-agregar-recursante');
@@ -2477,33 +2471,38 @@ async function confirmarEditarRecursante() {
     }
 }
 
-async function eliminarRecursante(turno, curso, materia, dni) {
+async function eliminarRecursante(turno, curso, dni) {
     if (!confirm('¿Está seguro de eliminar este recursante de la base de datos?')) return;
+
+    const r = recursantesAgrupados[curso]?.[dni];
+    if (!r || !r.materias.length) return;
+
     try {
-        const resp = await fetch(URL_WEB_APP, {
-            method: 'POST',
-            mode: 'cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({
-                action: 'eliminarRecursante',
-                correo: sesionActual.correo,
-                turno: turno,
-                curso: curso,
-                materia: materia,
-                dni: dni
-            })
-        });
-        const resultado = await resp.json();
-        if (resultado.success) {
-            if (recursantesPorMateria[curso]?.[materia]) {
-                recursantesPorMateria[curso][materia] = recursantesPorMateria[curso][materia].filter(r => r.dni !== dni);
+        for (const materia of r.materias) {
+            const resp = await fetch(URL_WEB_APP, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'eliminarRecursante',
+                    correo: sesionActual.correo,
+                    turno, curso, materia, dni
+                })
+            });
+            const resultado = await resp.json();
+            if (!resultado.success) {
+                alert('Error al eliminar materia ' + materia + ': ' + (resultado.error || 'Desconocido'));
+                return;
             }
-            alert('Recursante eliminado correctamente.');
-            cargarAlumnos();
-            cargarListaAlumnosGestion();
-        } else {
-            alert('Error: ' + (resultado.error || 'No se pudo eliminar'));
         }
+
+        if (recursantesAgrupados[curso]) {
+            delete recursantesAgrupados[curso][dni];
+            if (Object.keys(recursantesAgrupados[curso]).length === 0) delete recursantesAgrupados[curso];
+        }
+        alert('Recursante eliminado correctamente.');
+        cargarAlumnos();
+        cargarListaAlumnosGestion();
     } catch (err) {
         console.error(err);
         alert('Error de conexión al eliminar recursante.');
