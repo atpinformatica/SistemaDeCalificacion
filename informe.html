@@ -23,13 +23,13 @@
       print-color-adjust: exact !important;
       color-adjust: exact !important;
       font-family: 'Segoe UI', Arial, sans-serif;
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #222;
       background: white;
     }
 
-    .pagina { page-break-after: always; }
-    .marco-contenido { border: 5px solid var(--violeta-oscuro); border-radius: 4px; padding: 8px; }
+    .pagina { page-break-after: always; page-break-inside: avoid; }
+    .marco-contenido { border: 5px solid var(--violeta-oscuro); border-radius: 4px; padding: 6px; }
     .pagina:last-child { page-break-after: avoid; }
 
     /* ── CABECERA ── */
@@ -37,7 +37,7 @@
       display: grid;
       grid-template-columns: 155px 1fr 68px 210px;
       border: 1.5px solid var(--borde);
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       border-radius: 3px;
       overflow: hidden;
     }
@@ -47,27 +47,27 @@
       print-color-adjust: exact !important;
       color: white !important;
       text-align: center;
-      padding: 7px 5px;
+      padding: 5px 4px;
       display: flex; flex-direction: column; justify-content: center;
     }
-    .cab-cpem .titulo    { font-size: 11pt; font-weight: 700; }
-    .cab-cpem .subtitulo { font-size: 7.5pt; font-weight: 400; margin-top: 2px; opacity: .9; }
+    .cab-cpem .titulo    { font-size: 10pt; font-weight: 700; }
+    .cab-cpem .subtitulo { font-size: 7pt; font-weight: 400; margin-top: 1px; opacity: .9; }
     .cab-nombre {
-      padding: 0 12px; display: flex; align-items: center;
-      font-size: 13.5pt; font-weight: 700; letter-spacing: 0.3px;
+      padding: 0 10px; display: flex; align-items: center;
+      font-size: 12pt; font-weight: 700; letter-spacing: 0.3px;
       border-left: 1.5px solid var(--borde); border-right: 1.5px solid var(--borde);
       background-color: var(--lila-cab) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
     .cab-curso {
       display: flex; align-items: center; justify-content: center;
-      font-size: 14pt; font-weight: 700;
+      font-size: 13pt; font-weight: 700;
       background-color: var(--lila-nota) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
       border-right: 1.5px solid var(--borde); color: var(--texto-area);
     }
     .cab-prece {
-      padding: 5px 10px; display: flex; flex-direction: column; justify-content: center;
+      padding: 3px 8px; display: flex; flex-direction: column; justify-content: center;
       background-color: var(--lila-cab) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
     }
@@ -81,38 +81,41 @@
     }
     table.tabla-principal th, table.tabla-principal > tbody > tr > td {
       border: 1px solid var(--borde);
-      padding: 3px 5px; vertical-align: middle;
+      padding: 2px 4px; vertical-align: middle;
     }
     .th-main {
       background-color: var(--violeta-oscuro) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-      color: white !important; font-size: 7.5pt; font-weight: 600; text-align: center;
+      color: white !important; font-size: 7pt; font-weight: 600; text-align: center;
+      vertical-align: middle;
     }
     .th-sub {
       background-color: var(--violeta-medio) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-      color: white !important; font-size: 7pt; font-weight: 600; text-align: center;
+      color: white !important; font-size: 6.5pt; font-weight: 600; text-align: center;
     }
     .td-area {
       background-color: var(--lila-area) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-      font-weight: 700; font-size: 7.5pt; text-align: center;
-      color: var(--texto-area); width: 130px; vertical-align: middle;
+      font-weight: 700; font-size: 7pt; text-align: center;
+      color: var(--texto-area); width: 115px; vertical-align: middle;
     }
     .td-nota {
-      text-align: center; font-weight: 700; font-size: 9pt; width: 48px;
+      text-align: center; font-weight: 700; font-size: 8.5pt; width: 42px;
       background-color: var(--lila-nota) !important;
       -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
       vertical-align: middle;
     }
-    .td-val { text-align: center; font-size: 8pt; color: #888; }
+    .td-val { text-align: center; font-size: 7.5pt; color: #888; }
     .td-val.tiene-valor { color: #222; font-weight: 600; }
-    .td-docente { font-size: 7.5pt; }
-    .td-obs { font-size: 7.5pt; }
-    .td-mat-wrap {
-      background-color: var(--lila-mat) !important;
+    .td-docente { font-size: 7pt; vertical-align: middle; }
+    .td-obs { font-size: 7pt; }
+    .td-area-nombre {
+      background-color: var(--lila-area) !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+      font-weight: 700; font-size: 7pt; text-align: center;
+      color: var(--texto-area); vertical-align: middle;
     }
 
     /* ── TABLAS INTERNAS (materias y obs) — SIN herencia de estilos de tabla-principal ── */
@@ -129,30 +132,32 @@
     }
     /* Celda de materia real */
     .tc-mat {
-      padding: 3px 5px !important;
+      padding: 2px 4px !important;
       border-bottom: 1px solid var(--borde) !important;
-      font-size: 8pt;
+      font-size: 7.5pt;
       vertical-align: middle;
       background-color: var(--lila-mat) !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+      width: 59%;
     }
     /* Celda de docente real */
     .tc-doc {
-      padding: 3px 5px !important;
+      padding: 2px 4px !important;
       border-bottom: 1px solid var(--borde) !important;
       border-left: 1px solid var(--borde) !important;
-      font-size: 7.5pt;
+      font-size: 7pt;
       vertical-align: middle;
+      width: 41%;
     }
     /* Celda de obs real */
     .tc-obs {
-      padding: 3px 6px !important;
+      padding: 2px 5px !important;
       border-bottom: 1.5px solid var(--borde) !important;
-      font-size: 7.5pt;
+      font-size: 7pt;
       vertical-align: middle;
-      height: 18px;
-      min-height: 18px;
+      height: 16px;
+      min-height: 16px;
     }
     .tc-obs-nota {
       font-weight: 600;
@@ -167,7 +172,7 @@
     /* ── FIRMAS ── */
     .firmas {
       display: flex; justify-content: space-between;
-      margin-top: 70px; padding: 0 20px;
+      margin-top: 50px; padding: 0 10px;
     }
     .firma-item {
       font-size: 9pt; font-weight: 600; color: var(--texto-area);
@@ -270,17 +275,15 @@
     function autoFitPaginas() {
       var paginas = document.querySelectorAll('.pagina');
       if (!paginas.length) return;
-      var anchoBase = 1100;
-      var altoMaximo = anchoBase * 190 / 277;
+      var anchoMax = 1062;
+      var altoMax = 740;
       paginas.forEach(function(pag) {
-        pag.style.width = anchoBase + 'px';
+        pag.style.zoom = '1';
+        pag.style.width = '';
+        pag.style.width = anchoMax + 'px';
         var altoActual = pag.scrollHeight;
-        if (altoActual > altoMaximo) {
-          var escala = altoMaximo / altoActual;
-          pag.style.transformOrigin = 'top left';
-          pag.style.transform = 'scale(' + escala + ')';
-          pag.style.height = altoMaximo + 'px';
-          pag.style.overflow = 'hidden';
+        if (altoActual > altoMax) {
+          pag.style.zoom = altoMax / altoActual;
         }
       });
     }
