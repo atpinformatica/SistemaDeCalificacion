@@ -2338,7 +2338,7 @@ function actualizarMateriasRecursante(dniEdit = '') {
         return;
     }
 
-    const materias = materiasPorCurso[curso] || [];
+    const materias = (materiasPorCurso[curso] || []).slice().sort((a, b) => a.localeCompare(b, 'es'));
 
     let materiasEdit = new Set();
     if (dniEdit && recursantesPorMateria[curso]) {
@@ -2349,13 +2349,26 @@ function actualizarMateriasRecursante(dniEdit = '') {
         });
     }
 
-    container.innerHTML = materias.map(m => `
-        <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;border-radius:4px;transition:background 0.15s;"
-               onmouseover="this.style.background='#eef'" onmouseout="this.style.background=''">
-            <input type="checkbox" value="${m}" ${materiasEdit.has(m) ? 'checked' : ''}>
-            <span>${m}</span>
-        </label>
-    `).join('');
+    container.innerHTML = `
+        <input type="text" id="filtro-materias-recursante" placeholder="Buscar materia..." style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;margin-bottom:6px;box-sizing:border-box;" oninput="filtrarMateriasRecursante(this.value)">
+        <div id="recursante-materias-lista" style="max-height:150px;overflow-y:auto;">
+            ${materias.map(m => `
+                <label class="recursante-mat-item" data-mat="${m}" style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;border-radius:4px;transition:background 0.15s;"
+                       onmouseover="this.style.background='#eef'" onmouseout="this.style.background=''">
+                    <input type="checkbox" value="${m}" ${materiasEdit.has(m) ? 'checked' : ''}>
+                    <span>${m}</span>
+                </label>
+            `).join('')}
+        </div>
+    `;
+}
+
+function filtrarMateriasRecursante(texto) {
+    const q = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    document.querySelectorAll('#recursante-materias-lista .recursante-mat-item').forEach(label => {
+        const mat = label.getAttribute('data-mat').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        label.style.display = mat.includes(q) ? '' : 'none';
+    });
 }
 
 async function confirmarGuardarRecursante() {
