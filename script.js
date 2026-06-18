@@ -638,9 +638,11 @@ async function cargarRecursantes() {
         if (res.success && res.recursantes) {
             recursantesPorMateria = {};
             res.recursantes.forEach(r => {
-                const key = `${r.turno}-${r.curso}-${r.materia}`;
-                if (!recursantesPorMateria[key]) recursantesPorMateria[key] = [];
-                recursantesPorMateria[key].push({ dni: r.dni, nombre: r.nombre, turno: r.turno });
+                if (!recursantesPorMateria[r.curso]) recursantesPorMateria[r.curso] = {};
+                if (!recursantesPorMateria[r.curso][r.materia]) recursantesPorMateria[r.curso][r.materia] = [];
+                if (!recursantesPorMateria[r.curso][r.materia].some(e => e.dni === r.dni)) {
+                    recursantesPorMateria[r.curso][r.materia].push({ dni: r.dni, nombre: r.nombre, turno: r.turno });
+                }
             });
         }
     } catch(e) {
@@ -2127,7 +2129,10 @@ function renderizarTablaAlumnos() {
             <td style="font-size:0.82rem;color:#555;">${a.esRecursante ? a.materia : '-'}</td>
             <td>
                 ${a.esRecursante
-                    ? `<button class="btn-action" onclick="eliminarRecursante('${a.turno}', '${a.curso}', '${a.materia}', '${a.dni}')" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+                    ? `<button class="btn-action" onclick="mostrarModalEditarRecursante('${a.turno}', '${a.curso}', '${a.dni}')" style="background:#ffc107;color:#333;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px;">
+                           <i class="fas fa-edit"></i> Editar
+                       </button>
+                       <button class="btn-action" onclick="eliminarRecursante('${a.turno}', '${a.curso}', '${a.materia}', '${a.dni}')" style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
                            <i class="fas fa-trash-alt"></i> Eliminar
                        </button>`
                     : `<button class="btn-action" onclick="mostrarModalEditarAlumno('${a.turno}', '${a.curso}', '${a.dni}')" style="background:#ffc107;color:#333;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px;">
@@ -2294,40 +2299,85 @@ async function eliminarAlumno(turno, curso, dni) {
 }
 
 function mostrarModalAgregarRecursante() {
+    document.getElementById('recursante-modo').value = 'agregar';
+    document.getElementById('recursante-dni').value = '';
+    document.getElementById('recursante-modal-titulo').textContent = 'Agregar Recursante';
     document.getElementById('recursante-nombre').value = '';
     document.getElementById('recursante-curso').value = '';
-    document.getElementById('recursante-materia').innerHTML = '<option value="">Seleccione Curso primero</option>';
+    document.getElementById('recursante-materias-container').innerHTML = '<div style="color:#999;padding:8px;">Seleccione un curso primero</div>';
     document.getElementById('recursante-turno').value = '';
     document.getElementById('modal-agregar-recursante').style.display = 'flex';
 }
 
-function actualizarMateriasRecursante() {
+function mostrarModalEditarRecursante(turno, curso, dni) {
+    document.getElementById('recursante-modo').value = 'editar';
+    document.getElementById('recursante-dni').value = dni;
+    document.getElementById('recursante-modal-titulo').textContent = 'Editar Recursante';
+    document.getElementById('recursante-curso').value = curso;
+
+    document.getElementById('recursante-turno').value = '';
+    const turnosSelect = document.getElementById('recursante-turno');
+    for (let opt of turnosSelect.options) {
+        if (opt.value === turno) { opt.selected = true; break; }
+    }
+
+    const nombre = recursantesPorMateria[curso] && Object.values(recursantesPorMateria[curso])
+        .flat().find(r => r.dni === dni)?.nombre || '';
+    document.getElementById('recursante-nombre').value = nombre;
+
+    actualizarMateriasRecursante(dni);
+    document.getElementById('modal-agregar-recursante').style.display = 'flex';
+}
+
+function actualizarMateriasRecursante(dniEdit = '') {
     const curso = document.getElementById('recursante-curso').value;
-    const selectMateria = document.getElementById('recursante-materia');
-    
+    const container = document.getElementById('recursante-materias-container');
+
     if (!curso) {
-        selectMateria.innerHTML = '<option value="">Seleccione Curso primero</option>';
+        container.innerHTML = '<div style="color:#999;padding:8px;">Seleccione un curso primero</div>';
         return;
     }
-    
+
     const materias = materiasPorCurso[curso] || [];
-    selectMateria.innerHTML = '<option value="">Seleccione Materia</option>' + 
-        materias.map(m => `<option value="${m}">${m}</option>`).join('');
+
+    let materiasEdit = new Set();
+    if (dniEdit && recursantesPorMateria[curso]) {
+        Object.keys(recursantesPorMateria[curso]).forEach(mat => {
+            if (recursantesPorMateria[curso][mat].some(r => r.dni === dniEdit)) {
+                materiasEdit.add(mat);
+            }
+        });
+    }
+
+    container.innerHTML = materias.map(m => `
+        <label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;border-radius:4px;transition:background 0.15s;"
+               onmouseover="this.style.background='#eef'" onmouseout="this.style.background=''">
+            <input type="checkbox" value="${m}" ${materiasEdit.has(m) ? 'checked' : ''}>
+            <span>${m}</span>
+        </label>
+    `).join('');
+}
+
+async function confirmarGuardarRecursante() {
+    const modo = document.getElementById('recursante-modo').value;
+    if (modo === 'agregar') await confirmarAgregarRecursante();
+    else await confirmarEditarRecursante();
 }
 
 async function confirmarAgregarRecursante() {
     const nombre = document.getElementById('recursante-nombre').value.trim();
     const curso = document.getElementById('recursante-curso').value;
-    const materia = document.getElementById('recursante-materia').value;
     const turno = document.getElementById('recursante-turno').value;
-    
-    if (!nombre || !curso || !materia || !turno) {
-        alert('Complete todos los campos');
+    const checks = document.querySelectorAll('#recursante-materias-container input[type="checkbox"]:checked');
+    const materias = Array.from(checks).map(c => c.value);
+
+    if (!nombre || !curso || materias.length === 0 || !turno) {
+        alert('Complete todos los campos y seleccione al menos una materia');
         return;
     }
-    
+
     const dniTemporal = 'REC-' + Date.now();
-    
+
     try {
         const resp = await fetch(URL_WEB_APP, {
             method: 'POST',
@@ -2336,17 +2386,19 @@ async function confirmarAgregarRecursante() {
             body: JSON.stringify({
                 action: 'agregarRecursante',
                 correo: sesionActual.correo,
-                datos: { nombre, dni: dniTemporal, curso, materia, turno }
+                datos: { nombre, dni: dniTemporal, curso, materias, turno }
             })
         });
-        
+
         const resultado = await resp.json();
-        
+
         if (resultado.success) {
             if (!recursantesPorMateria[curso]) recursantesPorMateria[curso] = {};
-            if (!recursantesPorMateria[curso][materia]) recursantesPorMateria[curso][materia] = [];
-            recursantesPorMateria[curso][materia].push({ nombre, dni: dniTemporal, turno });
-            
+            materias.forEach(mat => {
+                if (!recursantesPorMateria[curso][mat]) recursantesPorMateria[curso][mat] = [];
+                recursantesPorMateria[curso][mat].push({ nombre, dni: dniTemporal, turno });
+            });
+
             alert('Recursante agregado exitosamente');
             cerrarModal('modal-agregar-recursante');
             cargarListaAlumnosGestion();
@@ -2356,6 +2408,59 @@ async function confirmarAgregarRecursante() {
     } catch (err) {
         console.error(err);
         alert('Error al agregar recursante');
+    }
+}
+
+async function confirmarEditarRecursante() {
+    const dni = document.getElementById('recursante-dni').value;
+    const nombre = document.getElementById('recursante-nombre').value.trim();
+    const curso = document.getElementById('recursante-curso').value;
+    const turno = document.getElementById('recursante-turno').value;
+    const checks = document.querySelectorAll('#recursante-materias-container input[type="checkbox"]:checked');
+    const materias = Array.from(checks).map(c => c.value);
+
+    if (!nombre || !curso || materias.length === 0 || !turno) {
+        alert('Complete todos los campos y seleccione al menos una materia');
+        return;
+    }
+
+    try {
+        const resp = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'editarRecursante',
+                correo: sesionActual.correo,
+                datos: { nombre, dni, curso, materias, turno }
+            })
+        });
+
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            // Actualizar local: borrar todas las entradas de este DNI y reinsertar
+            if (recursantesPorMateria[curso]) {
+                Object.keys(recursantesPorMateria[curso]).forEach(mat => {
+                    recursantesPorMateria[curso][mat] = recursantesPorMateria[curso][mat].filter(r => r.dni !== dni);
+                    if (recursantesPorMateria[curso][mat].length === 0) delete recursantesPorMateria[curso][mat];
+                });
+            }
+            materias.forEach(mat => {
+                if (!recursantesPorMateria[curso]) recursantesPorMateria[curso] = {};
+                if (!recursantesPorMateria[curso][mat]) recursantesPorMateria[curso][mat] = [];
+                recursantesPorMateria[curso][mat].push({ nombre, dni, turno });
+            });
+
+            alert('Recursante actualizado exitosamente');
+            cerrarModal('modal-agregar-recursante');
+            cargarListaAlumnosGestion();
+        } else {
+            alert('Error: ' + resultado.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error al editar recursante');
     }
 }
 
