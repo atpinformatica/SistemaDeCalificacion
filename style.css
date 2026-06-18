@@ -284,6 +284,10 @@ td {
     background-color: white;
 }
 
+.select-obs-multiple {
+    min-width: 260px;
+}
+
 .select-nota-cualitativa {
     border: 1px solid var(--verde-tabla); 
 }
