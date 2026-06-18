@@ -189,6 +189,54 @@
                 </div>
             </div>
 
+            <!-- CONFIGURACION DE FRASES POR AÑO / ÁREA -->
+            <div class="frases-section" style="background:#e8f4f8; border:1px solid #5bc0de; border-radius:8px; padding:15px; margin:15px 0;">
+                <h4 style="margin:0 0 10px 0; color:#31708f;"><i class="fas fa-comment-dots"></i> Frases por Año / Área</h4>
+                <p style="font-size:0.85rem; color:#31708f; margin-bottom:10px;">Configure las frases de los 3 desplegables para cada año y área. Cada desplegable (Frase 1, Frase 2, Frase 3) puede tener su propia lista. Separe las frases con <code>*</code> (asterisco).</p>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:10px;">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:0.75rem; color:#666;">Año:</label>
+                        <select id="frases-anio" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;">
+                            <option value="1">1°</option>
+                            <option value="2">2°</option>
+                            <option value="3">3°</option>
+                            <option value="4">4°</option>
+                            <option value="5">5°</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:2px; position:relative;">
+                        <label style="font-size:0.75rem; color:#666;">Área:</label>
+                        <div id="frases-area-wrapper" style="position:relative; width:220px;">
+                            <input type="text" id="frases-area" placeholder="Buscar área..." style="width:100%; padding:8px 12px; border-radius:4px; border:1px solid #ced4da; box-sizing:border-box;" onfocus="mostrarListaAreas()" oninput="filtrarListaAreas()" autocomplete="off">
+                            <div id="frases-area-dropdown" style="display:none; position:absolute; top:100%; left:0; right:0; max-height:200px; overflow-y:auto; background:white; border:1px solid #ced4da; border-radius:4px; z-index:1000; box-shadow:0 4px 8px rgba(0,0,0,0.1);"></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:200px;">
+                        <label style="font-size:0.75rem; color:#666; display:block; margin-bottom:3px;">Frase 1 (1er Cuatrimestre):</label>
+                        <textarea id="frases-1" rows="3" style="width:100%; padding:6px; border-radius:4px; border:1px solid #ced4da; font-size:0.85rem;" placeholder="Ej: Muy bueno * Bueno * Regular * Malo"></textarea>
+                    </div>
+                    <div style="flex:1; min-width:200px;">
+                        <label style="font-size:0.75rem; color:#666; display:block; margin-bottom:3px;">Frase 2 (2do Cuatrimestre):</label>
+                        <textarea id="frases-2" rows="3" style="width:100%; padding:6px; border-radius:4px; border:1px solid #ced4da; font-size:0.85rem;" placeholder="Ej: Muy bueno * Bueno * Regular * Malo"></textarea>
+                    </div>
+                    <div style="flex:1; min-width:200px;">
+                        <label style="font-size:0.75rem; color:#666; display:block; margin-bottom:3px;">Frase 3 (3er Cuatrimestre):</label>
+                        <textarea id="frases-3" rows="3" style="width:100%; padding:6px; border-radius:4px; border:1px solid #ced4da; font-size:0.85rem;" placeholder="Ej: Muy bueno * Bueno * Regular * Malo"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top:10px;">
+                    <button class="btn-save" onclick="cargarFrasesAnioArea()" style="background:#5bc0de;">
+                        <i class="fas fa-search"></i> Cargar
+                    </button>
+                    <button class="btn-save" onclick="guardarFrasesAnioArea()" style="background:#28a745;">
+                        <i class="fas fa-save"></i> Guardar Frases
+                    </button>
+                    <span id="msg-frases" style="margin-left:10px; font-size:0.85rem;"></span>
+                </div>
+            </div>
+
             <!-- DESCARGA DE LIBROS ESCOLARES -->
             <div class="libros-section" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; padding:15px; margin:15px 0;">
                 <h4 style="margin:0 0 10px 0; color:#495057;"><i class="fas fa-book-open"></i> Descarga de Libros Escolares</h4>
