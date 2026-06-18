@@ -158,6 +158,9 @@
                         <div id="progress-bar" style="background:#28a745; height:100%; width:0%; transition:width 0.3s ease;"></div>
                     </div>
                     <p id="progress-text" style="font-size:0.75rem; color:#555; margin-top:4px; text-align:center;">Enviando datos...</p>
+                    <p id="cola-status" style="font-size:0.75rem; color:#856404; margin-top:2px; text-align:center; display:none;">
+                        <i class="fas fa-clock"></i> <span id="cola-texto">En fila para ser cargado...</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -250,13 +253,12 @@
                             <th>Correo</th>
                             <th>Rol</th>
                             <th id="th-materias-turno">Materias Asignadas</th>
-                            <th>Cursos Asignados</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-usuarios">
-                        <tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">Cargando usuarios...</td></tr>
+                        <tr><td colspan="5" style="padding:20px;text-align:center;color:#777;">Cargando usuarios...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -397,7 +399,7 @@
 
     <!-- ===================== MODAL AGREGAR USUARIO ===================== -->
     <div id="modal-agregar" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
+        <div class="modal-content modal-content-usuarios">
             <div class="modal-header">
                 <h3><i class="fas fa-user-plus"></i> Agregar Usuario</h3>
                 <button class="modal-close" onclick="cerrarModal('modal-agregar')">&times;</button>
@@ -422,13 +424,9 @@
                     </select>
                 </div>
                 <div class="form-group" id="grupo-materias-nuevas">
-                    <label>Materias permitidas</label>
+                    <label>Materias permitidas (Curso → Materia)</label>
                     <input type="text" class="filtro-materias" placeholder="Buscar materia..." oninput="filtrarMaterias(this)">
                     <div id="materias-multiselect" class="materias-checklist"></div>
-                </div>
-                <div class="form-group" id="grupo-cursos-nuevos">
-                    <label>Cursos permitidos</label>
-                    <div id="cursos-multiselect" class="materias-checklist"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -450,9 +448,6 @@
                 <label>Materias permitidas</label>
                 <input type="text" class="filtro-materias" placeholder="Buscar materia..." oninput="filtrarMaterias(this)">
                 <div id="materias-editar-checklist" class="materias-checklist"></div>
-                <hr style="margin:15px 0;">
-                <label>Cursos permitidos</label>
-                <div id="cursos-editar-checklist" class="materias-checklist"></div>
             </div>
             <div class="modal-footer">
                 <button class="btn-cancel" onclick="cerrarModal('modal-materias')">Cancelar</button>
