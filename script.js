@@ -348,6 +348,7 @@ let editandoCorreo = '';
 let alumnosDesdeSheets = [];
 let listaPreceptoresGlobal = [];
 let recursantesAgrupados = {};
+let frasesConfig = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
@@ -532,6 +533,7 @@ async function iniciarApp() {
     document.getElementById('app-main').style.display = 'block';
 
     await cargarRecursantes();
+    await cargarFrasesConfig();
 
     document.getElementById('session-email').textContent = sesionActual.correo;
     document.getElementById('session-rol').textContent = nombresRoles[sesionActual.rol] || sesionActual.rol;
@@ -599,8 +601,10 @@ function switchMainTab(tab) {
         if (typeof cargarListaUsuarios === 'function') cargarListaUsuarios();
         const esAdminGestionTab = sesionActual.rol === 'admin';
         const fechasSection = document.querySelector('.fechas-section');
+        const frasesSection = document.querySelector('.frases-section');
         const librosSection = document.querySelector('.libros-section');
         if (fechasSection) fechasSection.style.display = esAdminGestionTab ? 'block' : 'none';
+        if (frasesSection) frasesSection.style.display = esAdminGestionTab ? 'block' : 'none';
         if (librosSection) librosSection.style.display = esAdminGestionTab ? 'block' : 'none';
         if (esAdminGestionTab && typeof cargarFechasLimite === 'function') cargarFechasLimite();
     } else if (tab === 'alumnos') {
@@ -629,11 +633,8 @@ function actualizarSelectorTurnos() {
 
 async function cargarRecursantes() {
     try {
-        const resp = await fetch(URL_WEB_APP, {
-            method: 'POST', mode: 'cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'obtenerRecursantes', correo: sesionActual.correo })
-        });
+        const url = URL_WEB_APP + '?action=obtenerRecursantes&correo=' + encodeURIComponent(sesionActual.correo);
+        const resp = await fetch(url, { method: 'GET', mode: 'cors' });
         const res = await resp.json();
         if (res.success && res.recursantes) {
             recursantesAgrupados = {};
@@ -642,14 +643,41 @@ async function cargarRecursantes() {
                 if (!recursantesAgrupados[r.curso][r.dni]) {
                     recursantesAgrupados[r.curso][r.dni] = { nombre: r.nombre, turno: r.turno, materias: [] };
                 }
-                if (!recursantesAgrupados[r.curso][r.dni].materias.includes(r.materia)) {
-                    recursantesAgrupados[r.curso][r.dni].materias.push(r.materia);
-                }
+                (r.materias || []).forEach(function(m) {
+                    if (!recursantesAgrupados[r.curso][r.dni].materias.includes(m)) {
+                        recursantesAgrupados[r.curso][r.dni].materias.push(m);
+                    }
+                });
             });
         }
     } catch(e) {
         console.warn('Error cargando recursantes:', e);
     }
+}
+
+async function cargarFrasesConfig() {
+    try {
+        const url = URL_WEB_APP + '?action=obtenerFrasesConfig';
+        const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+        const res = await resp.json();
+        if (res.success && res.frases) {
+            frasesConfig = res.frases;
+        }
+    } catch(e) {
+        console.warn('Error cargando frases config:', e);
+    }
+}
+
+function obtenerFrasesDropdown(anio, materia, pos) {
+    if (!frasesConfig[anio]) return null;
+    const materiaNorm = materia.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const keys = Object.keys(frasesConfig[anio]);
+    const matchKey = keys.find(k =>
+        k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === materiaNorm
+    );
+    if (!matchKey) return null;
+    const arr = frasesConfig[anio][matchKey]?.[pos];
+    return arr?.length ? arr : null;
 }
 
 function actualizarMaterias() {
@@ -913,7 +941,26 @@ function cargarAlumnos() {
 
     // 2. RENDERIZADO DE FILAS
     tbody.innerHTML = ''; 
-    const alumnos = baseDeDatosAlumnos[turno]?.[curso] || [];
+    let alumnos = (baseDeDatosAlumnos[turno]?.[curso] || []).map(a => ({ ...a, _recursante: false }));
+
+    // Filtrar recursantes: deben aparecer SOLO en las materias que recursan
+    if (recursantesAgrupados[curso]) {
+        Object.keys(recursantesAgrupados[curso]).forEach(dni => {
+            const r = recursantesAgrupados[curso][dni];
+            const matchIdx = alumnos.findIndex(a => normalizarNombre(a.nombre) === normalizarNombre(r.nombre));
+            if (matchIdx >= 0) {
+                // Es alumno regular + recursante
+                if (r.materias.includes(materia)) {
+                    alumnos[matchIdx]._recursante = true; // lo marcamos pero se queda
+                } else {
+                    alumnos.splice(matchIdx, 1); // lo sacamos, no recursa esta materia
+                }
+            } else if (r.materias.includes(materia)) {
+                // Solo recursante (no está en baseDeDatosAlumnos)
+                alumnos.push({ dni, nombre: r.nombre, _recursante: true });
+            }
+        });
+    }
     
     // Buscar frases correspondientes a la materia
     let frases = frasesPorMateria["DEFAULT"];
@@ -957,9 +1004,9 @@ function cargarAlumnos() {
             if (añoCurso >= 4 || periodo.includes("Bimestre")) {
                 const valP = persistido[`sel_1`] || "";
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">
-                            <select class="nota-input select-obs-multiple" data-pos="1" style="font-size:0.85rem;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_1', this.value)">
+                            <select class="nota-input select-obs-multiple" data-pos="1" style="font-size:0.85rem;min-width:260px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_1', this.value)">
                                 <option value="">Seleccione una frase...</option>
-                                ${frases.map(f => `<option value="${f}" ${valP===f?'selected':''}>${f}</option>`).join('')}
+                                ${frases.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
                             </select>
                             <textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:40px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
                          </div></td>`;
@@ -967,9 +1014,10 @@ function cargarAlumnos() {
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
                 for(let p=1; p<=3; p++) {
                     const valP = persistido[`sel_${p}`] || "";
-                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
+                    const opts = obtenerFrasesDropdown(añoCurso, materia, p) || frases;
+                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
                                 <option value="">Frase ${p}...</option>
-                                ${frases.map(f => `<option value="${f}" ${valP===f?'selected':''}>${f}</option>`).join('')}
+                                ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
                              </select>`;
                 }
                 html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:40px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
@@ -983,9 +1031,10 @@ function cargarAlumnos() {
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
                 for(let p=1; p<=3; p++) {
                     const valP = persistido[`sel_${p}`] || "";
-                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
+                    const opts = obtenerFrasesDropdown(añoCurso, materia, p) || frases;
+                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
                                 <option value="">Frase ${p}...</option>
-                                ${frases.map(f => `<option value="${f}" ${valP===f?'selected':''}>${f}</option>`).join('')}
+                                ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
                              </select>`;
                 }
                 html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:45px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
@@ -1188,7 +1237,21 @@ async function guardarEnGoogleSheets() {
     }
 
     const llave = `${turno}-${curso}-${materia}-${periodo}`;
-    const alumnos = baseDeDatosAlumnos[turno]?.[curso];
+    let alumnos = (baseDeDatosAlumnos[turno]?.[curso] || []).map(a => ({ ...a }));
+    // Filtrar recursantes: solos para las materias que recursan
+    if (recursantesAgrupados[curso]) {
+        Object.keys(recursantesAgrupados[curso]).forEach(dni => {
+            const r = recursantesAgrupados[curso][dni];
+            const matchIdx = alumnos.findIndex(a => normalizarNombre(a.nombre) === normalizarNombre(r.nombre));
+            if (matchIdx >= 0) {
+                if (!r.materias.includes(materia)) {
+                    alumnos.splice(matchIdx, 1);
+                }
+            } else if (r.materias.includes(materia)) {
+                alumnos.push({ dni, nombre: r.nombre });
+            }
+        });
+    }
     if (!alumnos || alumnos.length === 0) {
         alert('No hay alumnos cargados para esta combinacion');
         return;
@@ -1246,7 +1309,27 @@ function verificarPermisoEdicion(materia, curso) {
         return true;
     }
     const pair = (curso ? curso + ': ' : '') + materia;
-    return sesionActual.materias_permitidas.indexOf(pair) !== -1;
+    if (sesionActual.materias_permitidas.indexOf(pair) !== -1) return true;
+    
+    // Fallback solo para 1° a 3° año: el docente tiene materias específicas
+    // (ej. "1 C: MATEMATICA") y debe poder editar el área completa
+    // (ej. "MATEMÁTICA E INFORMÁTICA")
+    const anio = curso ? parseInt(curso) : 0;
+    if (anio >= 1 && anio <= 3) {
+        const materiaNorm = materia.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        for (const perm of sesionActual.materias_permitidas) {
+            if (curso && !perm.startsWith(curso + ': ')) continue;
+            const permSubject = perm.substring((curso + ': ').length).trim().toUpperCase();
+            // Normalizar por si el área en areasPorMateria está sin acentos
+            const permArea = areasPorMateria[permSubject];
+            if (permArea) {
+                const permAreaNorm = permArea.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                if (permAreaNorm === materiaNorm) return true;
+            }
+        }
+    }
+    
+    return false;
 }
 
 // ============================================================
@@ -1674,6 +1757,130 @@ function renderizarFechasLimite(fechasGuardadas) {
     `).join('');
 }
 
+function obtenerAreasDisponibles() {
+    const areas = new Set([
+        'Ciencias Sociales, Políticas y Económicas',
+        'Lenguajes y Producción Cultural',
+        'Ciencias Naturales',
+        'Matemática e Informática',
+        'Educación Física Integral',
+        'Interárea Educación Sexual Integral',
+        'Interárea Tecnología'
+    ]);
+    // Agrega las que ya están en frasesConfig por si aparecen otras distintas
+    Object.values(frasesConfig).forEach(porAnio => {
+        Object.keys(porAnio).forEach(a => areas.add(a));
+    });
+    return [...areas].sort();
+}
+
+function mostrarListaAreas() {
+    const input = document.getElementById('frases-area');
+    const dropdown = document.getElementById('frases-area-dropdown');
+    const areas = obtenerAreasDisponibles();
+    const filtro = input.value.toLowerCase();
+    const filtradas = areas.filter(a => a.toLowerCase().includes(filtro));
+    
+    if (filtradas.length === 0) { dropdown.style.display = 'none'; return; }
+    
+    dropdown.innerHTML = filtradas.map(a =>
+        `<div style="padding:8px 12px; cursor:pointer; border-bottom:1px solid #eee; font-size:0.85rem;" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background=''" onclick="seleccionarArea('${a.replace(/'/g, "\\'")}')">${a}</div>`
+    ).join('');
+    dropdown.style.display = 'block';
+}
+
+function filtrarListaAreas() {
+    const dropdown = document.getElementById('frases-area-dropdown');
+    const input = document.getElementById('frases-area');
+    if (input.value) { mostrarListaAreas(); }
+    else { dropdown.style.display = 'none'; }
+}
+
+function seleccionarArea(area) {
+    document.getElementById('frases-area').value = area;
+    document.getElementById('frases-area-dropdown').style.display = 'none';
+    cargarFrasesAnioArea();
+}
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('frases-area-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        const dd = document.getElementById('frases-area-dropdown');
+        if (dd) dd.style.display = 'none';
+    }
+});
+
+async function cargarFrasesAnioArea() {
+    const anio = document.getElementById('frases-anio').value;
+    const area = document.getElementById('frases-area').value.trim();
+    if (!anio || !area) { document.getElementById('msg-frases').textContent = 'Seleccione año y área'; return; }
+    
+    // Buscar con clave normalizada (mayúscula sin acentos)
+    const areaNorm = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const keys = Object.keys(frasesConfig[anio] || {});
+    const matchKey = keys.find(k =>
+        k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaNorm
+    );
+    const row = matchKey ? frasesConfig[anio][matchKey] : null;
+    if (!row) {
+        document.getElementById('frases-1').value = '';
+        document.getElementById('frases-2').value = '';
+        document.getElementById('frases-3').value = '';
+        document.getElementById('msg-frases').textContent = 'No hay frases guardadas para esta combinación';
+        return;
+    }
+    document.getElementById('frases-1').value = (row[1] || []).join(' * ');
+    document.getElementById('frases-2').value = (row[2] || []).join(' * ');
+    document.getElementById('frases-3').value = (row[3] || []).join(' * ');
+    document.getElementById('msg-frases').textContent = 'Frases cargadas';
+    document.getElementById('msg-frases').style.color = 'green';
+}
+
+async function guardarFrasesAnioArea() {
+    const anio = document.getElementById('frases-anio').value;
+    const area = document.getElementById('frases-area').value.trim();
+    if (!anio || !area) { document.getElementById('msg-frases').textContent = 'Seleccione año y área'; return; }
+    
+    const datos = {
+        anio: anio,
+        area: area,
+        frases: {
+            1: document.getElementById('frases-1').value.split('*').map(s => s.trim()).filter(Boolean),
+            2: document.getElementById('frases-2').value.split('*').map(s => s.trim()).filter(Boolean),
+            3: document.getElementById('frases-3').value.split('*').map(s => s.trim()).filter(Boolean)
+        }
+    };
+    
+    try {
+        const resp = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'guardarFrasesConfig',
+                correo: sesionActual.correo,
+                datos: datos
+            })
+        });
+        const res = await resp.json();
+        if (res.success) {
+            frasesConfig[anio] = frasesConfig[anio] || {};
+            // Normalizar clave: mayúscula sin acentos para coincidir con materiasPorCurso
+            const areaKey = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            frasesConfig[anio][areaKey] = datos.frases;
+            document.getElementById('msg-frases').textContent = res.mensaje || 'Guardado correctamente';
+            document.getElementById('msg-frases').style.color = 'green';
+        } else {
+            document.getElementById('msg-frases').textContent = res.error || 'Error al guardar';
+            document.getElementById('msg-frases').style.color = 'red';
+        }
+    } catch(e) {
+        document.getElementById('msg-frases').textContent = 'Error de conexión';
+        document.getElementById('msg-frases').style.color = 'red';
+    }
+}
+
 async function guardarFechasLimite() {
     const fechas = {};
     ['1_Bimestre', '2_Bimestre', '1', '2'].forEach(p => {
@@ -1916,9 +2123,12 @@ async function generarInformes() {
       const alumnoKey = Object.keys(data.notasMap).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
       const notas = data.notasMap[alumnoKey] || {};
       const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+      // Si es recursante, mostrar solo las materias que recursa
+      const materiasRec = data.recursantesMap?.[alumno.dni];
+      const materiasOverride = materiasRec?.length ? materiasRec : undefined;
       return usarFormato45
-        ? paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap)
-        : paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap);
+        ? paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap, materiasOverride)
+        : paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap, materiasOverride);
     }).join('\n');
 
     abrirInformeEnPestana(paginasHTML);
@@ -1970,35 +2180,91 @@ function valorCelda(v) {
   return `<td class="td-val tiene-valor">${s}</td>`;
 }
 
-function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docenteMap) {
-  const materias = materiasPorCurso[curso] || [];
+function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docenteMap, materiasOverride) {
   let filas = '';
 
-  materias.forEach(mat => {
-    const key = Object.keys(notas).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
-    const n   = notas[key] || {};
-    const docKey = Object.keys(docenteMap).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
-    const doc = docenteMap[docKey] || '';
-    const obs1 = n.obs1 || n.sel_1 || '';
-    const obs2 = n.obs2 || n.sel_2 || '';
-    const obs3 = n.obs3 || n.sel_3 || '';
-    const obsP = n.obs4 || n.observacion || '';
-    const nota = (n.nota || '').toString().trim();
-    const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
-    filas += `<tr>
-      <td class="td-mat" style="width:185px;">${mat}</td>
-      <td class="td-docente" style="width:120px;">${doc}</td>
-      <td class="td-obs">${cualis || '-'}</td>
-      <td class="td-nota" style="width:48px;">${nota}</td>
-    </tr>`;
-  });
+  // Si es recursante con materiasOverride, usar lista plana
+  if (materiasOverride) {
+    materiasOverride.forEach(mat => {
+      const matUpper = mat.toUpperCase();
+      const key = Object.keys(notas).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
+      const n   = notas[key] || {};
+      const docKey = Object.keys(docenteMap).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
+      const doc = docenteMap[docKey] || '';
+      const obs1 = n.obs1 || n.sel_1 || '';
+      const obs2 = n.obs2 || n.sel_2 || '';
+      const obs3 = n.obs3 || n.sel_3 || '';
+      const obsP = n.obs4 || n.observacion || '';
+      const nota = (n.nota || '').toString().trim();
+      const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
+      filas += `<tr>
+        <td class="td-area-nombre"></td>
+        <td class="td-mat" style="width:160px;">${mat}</td>
+        <td class="td-docente" style="width:120px;">${doc}</td>
+        <td class="td-obs">${cualis || '-'}</td>
+        <td class="td-nota" style="width:48px;">${nota}</td>
+      </tr>`;
+    });
+  } else {
+    // 1°-3° año: agrupar por área
+    const areas = AREAS_POR_CURSO[curso] || [];
+    areas.forEach(grupo => {
+      const area = grupo.area;
+      const areaUpper = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      // Tomar obs y nota del primer subject que tenga datos (se usa rowspan)
+      let obsVal = '';
+      let notaVal = '';
+      for (const mat of grupo.materias) {
+        const matUpper = mat.toUpperCase();
+        const key = Object.keys(notas).find(k => {
+          const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return kn === matUpper || kn === areaUpper;
+        }) || mat;
+        const n = notas[key] || {};
+        const obs1 = n.obs1 || n.sel_1 || '';
+        const obs2 = n.obs2 || n.sel_2 || '';
+        const obs3 = n.obs3 || n.sel_3 || '';
+        const obsP = n.obs4 || n.observacion || '';
+        const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
+        if (cualis) obsVal = cualis;
+        if (n.nota) notaVal = (n.nota || '').toString().trim();
+      }
+      grupo.materias.forEach((mat, idx) => {
+        const matUpper = mat.toUpperCase();
+        const key = Object.keys(notas).find(k => {
+          const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return kn === matUpper || kn === areaUpper;
+        }) || mat;
+        const docKey = Object.keys(docenteMap).find(k => {
+          const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return kn === matUpper || kn === areaUpper;
+        }) || mat;
+        const doc = docenteMap[docKey] || '';
+        if (idx === 0) {
+          filas += `<tr>
+            <td class="td-area-nombre" rowspan="${grupo.materias.length}">${area}</td>
+            <td class="td-mat" style="width:160px;">${mat}</td>
+            <td class="td-docente" style="width:120px;">${doc}</td>
+            <td class="td-obs" rowspan="${grupo.materias.length}">${obsVal || '-'}</td>
+            <td class="td-nota" style="width:48px;" rowspan="${grupo.materias.length}">${notaVal}</td>
+          </tr>`;
+        } else {
+          filas += `<tr>
+            <td class="td-mat" style="width:160px;">${mat}</td>
+            <td class="td-docente" style="width:120px;">${doc}</td>
+          </tr>`;
+        }
+      });
+    });
+  }
 
   return `<div class="pagina">
     <div class="marco-contenido">
     ${cabeceraHTML(alumno, curso, preceptor, periodo)}
     <table class="tabla-principal">
       <thead><tr>
-        <th class="th-main" style="width:185px;">Espacio Curricular</th>
+        <th class="th-main" style="width:140px;">Area</th>
+        <th class="th-main" style="width:160px;">Espacio Curricular</th>
         <th class="th-main" style="width:120px;">Docentes</th>
         <th class="th-main">Informe Cualitativo</th>
         <th class="th-main" style="width:48px;">NOTA</th>
@@ -2474,35 +2740,30 @@ async function confirmarEditarRecursante() {
 async function eliminarRecursante(turno, curso, dni) {
     if (!confirm('¿Está seguro de eliminar este recursante de la base de datos?')) return;
 
-    const r = recursantesAgrupados[curso]?.[dni];
-    if (!r || !r.materias.length) return;
-
     try {
-        for (const materia of r.materias) {
-            const resp = await fetch(URL_WEB_APP, {
-                method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({
-                    action: 'eliminarRecursante',
-                    correo: sesionActual.correo,
-                    turno, curso, materia, dni
-                })
-            });
-            const resultado = await resp.json();
-            if (!resultado.success) {
-                alert('Error al eliminar materia ' + materia + ': ' + (resultado.error || 'Desconocido'));
-                return;
-            }
-        }
+        const resp = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'eliminarRecursante',
+                correo: sesionActual.correo,
+                dni
+            })
+        });
+        const resultado = await resp.json();
 
-        if (recursantesAgrupados[curso]) {
-            delete recursantesAgrupados[curso][dni];
-            if (Object.keys(recursantesAgrupados[curso]).length === 0) delete recursantesAgrupados[curso];
+        if (resultado.success) {
+            if (recursantesAgrupados[curso]) {
+                delete recursantesAgrupados[curso][dni];
+                if (Object.keys(recursantesAgrupados[curso]).length === 0) delete recursantesAgrupados[curso];
+            }
+            alert('Recursante eliminado correctamente.');
+            cargarAlumnos();
+            cargarListaAlumnosGestion();
+        } else {
+            alert('Error: ' + (resultado.error || 'No se pudo eliminar'));
         }
-        alert('Recursante eliminado correctamente.');
-        cargarAlumnos();
-        cargarListaAlumnosGestion();
     } catch (err) {
         console.error(err);
         alert('Error de conexión al eliminar recursante.');
@@ -2975,7 +3236,9 @@ async function generarPDFComprobante() {
     alumnos.forEach((alumno, index) => {
         const d = datosM[alumno.dni] || {};
         const nota = d.nota || '-';
-        const obs = d.observacion || d.sel_1 || '-';
+        const obs = (anoCurso >= 4 || esBimestre)
+            ? (d.observacion || d.sel_1 || '-')
+            : [d.sel_1, d.sel_2, d.sel_3, d.observacion].filter(o => o).map(o => `* ${o}`).join('<br>') || '-';
         
         html += `<tr>
             <td class="col-n">${index + 1}</td>
@@ -3500,10 +3763,12 @@ const MATERIAS_BIMESTRE_1_3 = {
   "3 C": ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIAS","LENGUA","LITERATURA","LENGUAS OTRAS","LENGUAS PREEXISTENTES","ARTES VISUALES","BIOLOGIA","QUIMICA","FISICA","MATEMATICA","INFORMATICA","EDUCACION FISICA INTEGRAL","INTEGRACION TECNOLOGICA","COMUNICACION Y MEDIOS","INVESTIGACION DE LAS ORIENTACIONES"]
 };
 
-function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docenteMap) {
+function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docenteMap, materiasOverride) {
   const anio = anioDesde(curso);
   let materias;
-  if (anio >= 4) {
+  if (materiasOverride) {
+    materias = materiasOverride;
+  } else if (anio >= 4) {
     materias = MATERIAS_4_5[curso] || [];
   } else {
     materias = materiasPorCurso[curso] || [];
