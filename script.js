@@ -349,6 +349,7 @@ let alumnosDesdeSheets = [];
 let listaPreceptoresGlobal = [];
 let recursantesAgrupados = {};
 let frasesConfig = {};
+let fechasLimite = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
@@ -542,6 +543,7 @@ async function iniciarApp() {
     actualizarSelectorTurnos();
 
     await cargarDesdeSheetsAlIniciar();
+    cargarFechasLimiteGlobal();
 }
 
 function configurarUIporRol() {
@@ -1089,6 +1091,7 @@ async function cargarAlumnos() {
         tr.innerHTML = html;
         tbody.appendChild(tr);
     });
+    actualizarAvisoFechaLimite(periodo);
 }
 
 // 4. EVENTOS
@@ -1789,6 +1792,55 @@ function renderizarFechasLimite(fechasGuardadas) {
             <input type="date" id="fecha-${p.id}" value="${fechasGuardadas[p.id] || ''}" style="padding:6px;border:1px solid #ced4da;border-radius:4px;">
         </div>
     `).join('');
+}
+
+async function cargarFechasLimiteGlobal() {
+    try {
+        const url = `${URL_WEB_APP}?action=obtenerConfig&correo=${encodeURIComponent(sesionActual.correo)}&clave=fechas_limite`;
+        const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+        const res = await resp.json();
+        if (res.success && res.valor) {
+            fechasLimite = JSON.parse(res.valor);
+        }
+    } catch (err) {
+        console.error('Error cargando fechas limite:', err);
+    }
+}
+
+function actualizarAvisoFechaLimite(periodo) {
+    const aviso = document.getElementById('aviso-fechas-limite');
+    const texto = document.getElementById('texto-fecha-limite');
+    if (!aviso || !texto) return;
+    let fecha = null;
+    if (periodo.includes('Bimestre')) {
+        fecha = fechasLimite[periodo] || null;
+    } else if (periodo === '1' || periodo === '2') {
+        fecha = fechasLimite[periodo] || null;
+    }
+    if (fecha) {
+        const partes = fecha.split('-');
+        const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+        texto.textContent = `Fecha límite de carga: ${fechaFormateada}`;
+        aviso.style.display = 'block';
+    } else {
+        aviso.style.display = 'none';
+    }
+}
+
+function obtenerFechaLimitePeriodo(periodo) {
+    return fechasLimite[periodo] || null;
+}
+
+function verificarTerminidad(fechaLimite) {
+    if (!fechaLimite) return { mensaje: '' };
+    const ahora = new Date();
+    const [anio, mes, dia] = fechaLimite.split('-').map(Number);
+    const limite = new Date(anio, mes - 1, dia + 1);
+    if (ahora <= limite) {
+        return { mensaje: 'Completado En Término' };
+    } else {
+        return { mensaje: 'Completado Fuera de Término' };
+    }
 }
 
 function obtenerAreasDisponibles() {
