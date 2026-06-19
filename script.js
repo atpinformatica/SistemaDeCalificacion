@@ -936,10 +936,7 @@ async function cargarAlumnos() {
     const avisoMateria = document.getElementById('aviso-materia-bloqueada');
     const accionesGuardar = document.getElementById('acciones-guardar');
 
-    if (sesionActual && sesionActual.rol === 'admin') {
-        accionesGuardar.style.display = 'none';
-        if (avisoMateria) avisoMateria.style.display = 'none';
-    } else if (!puedeEditar) {
+    if (!puedeEditar) {
         accionesGuardar.style.display = 'none';
         if (avisoMateria) avisoMateria.style.display = 'block';
     } else {
@@ -947,8 +944,8 @@ async function cargarAlumnos() {
         if (avisoMateria) avisoMateria.style.display = 'none';
     }
 
-    const disabledAttr = (!puedeEditar || (sesionActual && sesionActual.rol === 'admin')) ? 'disabled' : '';
-    const bgStyle = (!puedeEditar || (sesionActual && sesionActual.rol === 'admin')) ? 'style="background-color:#e9ecef;"' : '';
+    const disabledAttr = (!puedeEditar) ? 'disabled' : '';
+    const bgStyle = (!puedeEditar) ? 'style="background-color:#e9ecef;"' : '';
 
     actualizarEstadoBotonComprobante();
 
@@ -1253,10 +1250,7 @@ function agregarACola(turno, curso, materia, periodo, datos) {
 }
 
 async function guardarEnGoogleSheets() {
-    if (!sesionActual || sesionActual.rol === 'admin') {
-        alert('Los administradores no pueden editar calificaciones');
-        return;
-    }
+    if (!sesionActual) { alert('Debe iniciar sesión'); return; }
 
     respaldarAPantallaAMemoria();
     const btn = document.getElementById('btnGuardar');
@@ -1340,7 +1334,7 @@ async function guardarEnGoogleSheets() {
 
 function verificarPermisoEdicion(materia, curso) {
     if (!sesionActual) return false;
-    if (sesionActual.rol === 'admin') return false;
+    if (sesionActual.rol === 'admin') return true;
     const rol = sesionActual.rol;
     if (rol === 'jefe_preceptor' || rol === 'sub_jefe_preceptor' || rol === 'preceptor') {
         return false;
