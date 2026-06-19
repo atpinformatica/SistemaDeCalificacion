@@ -351,7 +351,7 @@ let recursantesAgrupados = {};
 let frasesConfig = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const nombresRoles = {
   admin: 'Administrador',
@@ -871,7 +871,7 @@ function actualizarSelectorCursos() {
 }
 
 // 3. CARGAR ALUMNOS (AJUSTADO SEGÚN TU SOLICITUD)
-function cargarAlumnos() {
+async function cargarAlumnos() {
     const tbody = document.querySelector('#tabla-notas tbody');
     const headerRow = document.getElementById('header-row');
     const turno = document.getElementById('turnos').value;
@@ -886,6 +886,46 @@ function cargarAlumnos() {
     }
 
     const llaveID = `${turno}-${curso}-${materia}-${periodo}`;
+    
+    // Si no hay datos en memoria para esta combinación, cargar desde el servidor
+    if (!memoriaGlobal[llaveID]) {
+        try {
+            const url = `${URL_WEB_APP}?action=obtenerDatosCurso`
+                + `&correo=${encodeURIComponent(sesionActual.correo)}`
+                + `&turno=${encodeURIComponent(turno)}`
+                + `&curso=${encodeURIComponent(curso)}`
+                + `&materia=${encodeURIComponent(materia)}`
+                + `&periodo=${encodeURIComponent(periodo)}`;
+            const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+            const res = await resp.json();
+            if (res.success && res.datos) {
+                if (!memoriaGlobal[llaveID]) memoriaGlobal[llaveID] = {};
+                const alumnos = baseDeDatosAlumnos[turno]?.[curso] || [];
+                res.datos.forEach(item => {
+                    const nombreBuscado = normalizarNombre(item.nombre);
+                    const alumno = alumnos.find(a => normalizarNombre(a.nombre) === nombreBuscado);
+                    if (!alumno) return;
+                    memoriaGlobal[llaveID][alumno.dni] = {
+                        nota:                  item.nota             || "",
+                        sel_1:                 item.obs1             || "",
+                        sel_2:                 item.obs2             || "",
+                        sel_3:                 item.obs3             || "",
+                        observacion:           item.obs4             || "",
+                        "Interpreta":          item.interpreta       || "-",
+                        "Relaciona":           item.relaciona        || "-",
+                        "Aplica":              item.aplica           || "-",
+                        "Participación":       item.participacion    || "-",
+                        "Autonomía":           item.autonomia        || "-",
+                        "Realización de TP":   item.realizacion_tp   || "-",
+                        "Cumplimiento AEC":    item.cumplimiento_aec || "-"
+                    };
+                });
+            }
+        } catch(e) {
+            console.warn('Error cargando datos del curso:', e);
+        }
+    }
+    
     const datosM = memoriaGlobal[llaveID] || {};
     const añoCurso = curso ? parseInt(curso.charAt(0)) : 0;
     const esBimestre = periodo.includes("Bimestre");
