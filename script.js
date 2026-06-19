@@ -543,7 +543,7 @@ async function iniciarApp() {
     actualizarSelectorTurnos();
 
     await cargarDesdeSheetsAlIniciar();
-    cargarFechasLimiteGlobal();
+    await cargarFechasLimiteGlobal();
 }
 
 function configurarUIporRol() {
@@ -884,7 +884,13 @@ async function cargarAlumnos() {
     // Si falta algún filtro, limpiamos la tabla y salimos
     if (!turno || !curso || !materia || !periodo) {
         limpiarTabla();
+        actualizarAvisoFechaLimite('');
         return;
+    }
+
+    // Asegurar fechas limite cargadas
+    if (Object.keys(fechasLimite).length === 0) {
+        await cargarFechasLimiteGlobal();
     }
 
     const llaveID = `${turno}-${curso}-${materia}-${periodo}`;
@@ -1952,8 +1958,14 @@ async function guardarFrasesAnioArea() {
         const res = await resp.json();
         if (res.success) {
             frasesConfig[anio] = frasesConfig[anio] || {};
-            // Normalizar clave: mayúscula sin acentos para coincidir con materiasPorCurso
             const areaKey = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const keys = Object.keys(frasesConfig[anio]);
+            const existingKey = keys.find(k =>
+                k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaKey
+            );
+            if (existingKey && existingKey !== areaKey) {
+                delete frasesConfig[anio][existingKey];
+            }
             frasesConfig[anio][areaKey] = datos.frases;
             document.getElementById('msg-frases').textContent = res.mensaje || 'Guardado correctamente';
             document.getElementById('msg-frases').style.color = 'green';
