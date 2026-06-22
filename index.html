@@ -241,21 +241,15 @@
             <div class="libros-section" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; padding:15px; margin:15px 0;">
                 <h4 style="margin:0 0 10px 0; color:#495057;"><i class="fas fa-book-open"></i> Descarga de Libros Escolares</h4>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                    <!-- Selector de Año -->
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <label style="font-size:0.75rem; color:#666;">Año:</label>
-                        <input type="number" id="input-anio-libro" value="2025" min="2020" max="2030" 
-                               style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da; width:80px;">
-                    </div>
-                    
                     <!-- Selector de Período -->
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <label style="font-size:0.75rem; color:#666;">Periodo:</label>
                         <select id="select-periodo-libro" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;">
-                            <option value="1_Bimestre">1er Bimestre</option>
-                            <option value="2_Bimestre">2do Bimestre</option>
-                            <option value="1">1er Cuatrimestre</option>
-                            <option value="2">2do Cuatrimestre</option>
+                            <option value="">Seleccione Período</option>
+                            <option value="1er Cuatrimestre">1er Cuatrimestre</option>
+                            <option value="2do Cuatrimestre">2do Cuatrimestre</option>
+                            <option value="1er Bimestre">1er Bimestre</option>
+                            <option value="2do Bimestre">2do Bimestre</option>
                         </select>
                     </div>
                     
@@ -284,13 +278,33 @@
                             <option value="5 C">5 C</option>
                         </select>
                     </div>
+
+                    <!-- Selector de Turno -->
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:0.75rem; color:#666;">Turno:</label>
+                        <select id="select-turno-libro" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;">
+                            <option value="">Todos los turnos</option>
+                            <option value="MAÑANA">MAÑANA</option>
+                            <option value="TARDE">TARDE</option>
+                        </select>
+                    </div>
+
+                    <!-- Selector de Año -->
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:0.75rem; color:#666;">Año:</label>
+                        <input type="number" id="input-anio-libro" value="2025" min="2020" max="2030"
+                               style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da; width:80px;">
+                    </div>
                     
-                    <button class="btn-comprobante" onclick="descargarLibroPorCurso()" style="margin-right:0; margin-top:18px;">
+                    <button class="btn-add-user" onclick="descargarLibroPorCurso()" style="background:#7b3f9e;">
                         <i class="fas fa-file-pdf"></i> Descargar libro por curso
                     </button>
-                    <button class="btn-comprobante" onclick="descargarLibroTodosCursos()" style="margin-right:0; background:#17a2b8; margin-top:18px;">
+                    <button class="btn-add-user" onclick="descargarLibroTodosCursos()" style="background:#7b3f9e;">
                         <i class="fas fa-file-pdf"></i> Descargar libro de todos los cursos
                     </button>
+                    <span id="spinner-libro" style="display:none; margin-top:18px; color:#17a2b8; font-size:0.85rem;">
+                        <i class="fas fa-spinner fa-spin"></i> Generando informes...
+                    </span>
                 </div>
             </div>
 
@@ -492,7 +506,8 @@
                 <button class="modal-close" onclick="cerrarModal('modal-materias')">&times;</button>
             </div>
             <div class="modal-body">
-                <p id="editar-materias-usuario" style="font-weight:bold; margin-bottom:10px;"></p>
+                <label style="font-weight:bold; display:block; margin-bottom:4px;">Correo del docente</label>
+                <input type="email" id="editar-correo-input" style="width:100%; padding:8px; border:1px solid #ced4da; border-radius:4px; margin-bottom:12px; font-size:0.9rem;">
                 <label>Materias permitidas</label>
                 <input type="text" class="filtro-materias" placeholder="Buscar materia..." oninput="filtrarMaterias(this)">
                 <div id="materias-editar-checklist" class="materias-checklist"></div>
