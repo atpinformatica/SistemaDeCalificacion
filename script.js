@@ -309,15 +309,15 @@ const baseDeDatosAlumnos = {
 };
 
 const materiasPorCurso = {
-    "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
-    "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "2 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "2 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "2 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
+    "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "2 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "2 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+    "2 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "3 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
     "3 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
     "3 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
@@ -352,7 +352,7 @@ let frasesConfig = {};
 let fechasLimite = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const nombresRoles = {
   admin: 'Administrador',
@@ -702,15 +702,15 @@ function actualizarMaterias() {
 
     // 4. Mapa de materias exacto según tus cursos de la base de datos
     const materiasPorCurso = {
-        "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
-        "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "2 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "2 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "2 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA EDUCACIÓN SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
+        "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "2 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "2 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
+        "2 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
         "3 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
         "3 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
         "3 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
@@ -1477,7 +1477,9 @@ function renderizarTablaUsuarios(usuarios, sistemaActivo) {
             if (u.rol === 'docente' || (u.rol === 'admin' && !esAdminPrincipal)) {
                 acciones += `<button class="btn-action btn-edit-mat" onclick="abrirModalMaterias('${u.correo}')"><i class="fas fa-book"></i></button>`;
             }
-            acciones += `<button class="btn-action btn-edit-pass" onclick="abrirModalPassword('${u.correo}')"><i class="fas fa-key"></i></button>`;
+            if (!esAdminPrincipal || sesionActual.correo === '/admin32/@cpem32.edu.ar') {
+                acciones += `<button class="btn-action btn-edit-pass" onclick="abrirModalPassword('${u.correo}')"><i class="fas fa-key"></i></button>`;
+            }
             if (!esAdminPrincipal) {
                 acciones += `<button class="btn-action btn-delete" onclick="confirmarEliminarUsuario('${u.correo}')"><i class="fas fa-trash"></i></button>`;
             }
@@ -1633,7 +1635,8 @@ function mostrarModalAgregar() {
 
 function abrirModalMaterias(correo) {
     editandoCorreo = correo;
-    document.getElementById('editar-materias-usuario').textContent = 'Editando materias de: ' + correo;
+    const correoInput = document.getElementById('editar-correo-input');
+    if (correoInput) correoInput.value = correo;
     const container = document.getElementById('materias-editar-checklist');
     container.innerHTML = '<p style="color:#999;"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
     document.getElementById('modal-materias').style.display = 'flex';
@@ -1701,6 +1704,8 @@ function confirmarAgregarUsuario() {
 function confirmarEditarMaterias() {
     const checks = document.querySelectorAll('#materias-editar-checklist input[type="checkbox"]:checked');
     const materiasSeleccionadas = Array.from(checks).map(cb => cb.value);
+    const nuevoCorreo = document.getElementById('editar-correo-input').value.trim();
+    if (!nuevoCorreo) { alert('El correo no puede estar vacío'); return; }
     const btn = document.querySelector('#modal-materias .btn-confirm');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
@@ -1709,15 +1714,22 @@ function confirmarEditarMaterias() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
             action: 'actualizarMaterias', correoAdmin: sesionActual.correo,
-            correoDocente: editandoCorreo, materias: materiasSeleccionadas
+            correoDocente: editandoCorreo, nuevoCorreo: nuevoCorreo,
+            materias: materiasSeleccionadas
         })
     })
     .then(r => r.json())
     .then(res => {
         btn.disabled = false;
         btn.innerHTML = 'Guardar Cambios';
-        if (res.success) { cerrarModal('modal-materias'); mostrarToast('Materias actualizadas correctamente', 'success'); cargarListaUsuarios(); }
-        else { alert('Error: ' + res.error); }
+        if (res.success) {
+            editandoCorreo = nuevoCorreo;
+            cerrarModal('modal-materias');
+            mostrarToast(res.mensaje || 'Actualizado correctamente', 'success');
+            cargarListaUsuarios();
+        } else {
+            alert('Error: ' + res.error);
+        }
     })
     .catch(() => { btn.disabled = false; btn.innerHTML = 'Guardar Cambios'; alert('Error de conexion'); });
 }
@@ -1734,7 +1746,7 @@ function confirmarCambiarPassword() {
         method: 'POST', mode: 'cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-            action: 'cambiarPassword', correoAdmin: sesionActual.correo,
+            action: 'cambiarPassword', correoSolicitante: sesionActual.correo,
             correoObjetivo: editandoCorreo, nuevaPassword: nueva
         })
     })
@@ -1856,7 +1868,7 @@ function obtenerAreasDisponibles() {
         'Ciencias Naturales',
         'Matemática e Informática',
         'Educación Física Integral',
-        'Interárea Educación Sexual Integral',
+        'Educación Sexual Integral',
         'Interárea Tecnología'
     ]);
     // Agrega las que ya están en frasesConfig por si aparecen otras distintas
@@ -2216,6 +2228,8 @@ async function generarInformes() {
 
     const es4o5 = anioDesde(curso) >= 4;
     const esBimestre = periodo.includes('Bimestre');
+    const preceptorAuto = data.preceptor || '';
+    const preceptorFinal = preceptor || preceptorAuto;
 
     const paginasHTML = data.alumnos.map(alumno => {
       const alumnoKey = Object.keys(data.notasMap).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
@@ -2225,8 +2239,8 @@ async function generarInformes() {
       const materiasRec = data.recursantesMap?.[alumno.dni];
       const materiasOverride = materiasRec?.length ? materiasRec : undefined;
       return usarFormato45
-        ? paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap, materiasOverride)
-        : paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, data.docenteMap, materiasOverride);
+        ? paginaInforme45(alumno, curso, turno, periodo, preceptorFinal, notas, data.docenteMap, materiasOverride)
+        : paginaInforme13(alumno, curso, turno, periodo, preceptorFinal, notas, data.docenteMap, materiasOverride);
     }).join('\n');
 
     abrirInformeEnPestana(paginasHTML);
@@ -2257,7 +2271,9 @@ function abrirInformeEnPestana(paginasHTML) {
 
 function cabeceraHTML(alumno, curso, preceptor, periodo) {
   const esBimestre = periodo && periodo.includes('Bimestre');
-  const labelInforme = esBimestre ? 'Informe Bimestral 2026' : 'Informe Cuatrimestral 2026';
+  const anioEl = document.getElementById('input-anio-libro');
+  const anio = anioEl ? anioEl.value : new Date().getFullYear();
+  const labelInforme = esBimestre ? `Informe Bimestral ${anio}` : `Informe Cuatrimestral ${anio}`;
   return `<div class="cabecera">
     <div class="cab-cpem">
       <span class="titulo">CPEM N° 32</span>
@@ -3780,70 +3796,164 @@ function imprimirHTMLenIframe(html) {
 
 async function descargarLibroPorCurso() {
     const curso = document.getElementById('select-curso-libro').value;
-    const anio = document.getElementById('input-anio-libro').value;
     const periodo = document.getElementById('select-periodo-libro').value;
-    
-    if (!curso) {
-        alert('Seleccione un curso');
+    const turno = document.getElementById('select-turno-libro').value;
+
+    if (!curso || !periodo) {
+        alert('Seleccione curso y período');
         return;
     }
 
-    let usuarios = [];
-    try {
-        const resp = await fetch(URL_WEB_APP + '?action=listarUsuarios&correo=' + encodeURIComponent(sesionActual.correo));
-        const res = await resp.json();
-        if (res.success) usuarios = res.usuarios || [];
-    } catch (e) { console.warn('No se pudieron cargar usuarios para docentes', e); }
+    const turnos = turno ? [turno] : ['MAÑANA', 'TARDE'];
+    let todosAlumnos = [];
+    let todasNotas = {};
+    let todosDocentes = {};
+    let todosRecursantes = {};
+    let preceptor = '';
 
-    const html = generarHTMLLibroCurso(curso, usuarios, periodo, anio);
-    imprimirHTMLenIframe(html);
+    const resultados = await Promise.all(turnos.map(async t => {
+        try {
+            const url = `${URL_WEB_APP}?action=obtenerInformeCurso`
+                + `&correo=${encodeURIComponent(sesionActual.correo)}`
+                + `&curso=${encodeURIComponent(curso)}`
+                + `&turno=${encodeURIComponent(t)}`
+                + `&periodo=${encodeURIComponent(periodo)}`;
+            const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+            return await resp.json();
+        } catch (e) {
+            console.warn('Error cargando datos para turno', t, e);
+            return null;
+        }
+    }));
+
+    resultados.forEach(data => {
+        if (!data || !data.success) return;
+        if (!preceptor && data.preceptor) preceptor = data.preceptor;
+        if (data.alumnos) {
+            data.alumnos.forEach(a => {
+                if (!todosAlumnos.some(x => x.dni === a.dni)) {
+                    todosAlumnos.push(a);
+                }
+            });
+        }
+        if (data.notasMap) Object.assign(todasNotas, data.notasMap);
+        if (data.docenteMap) Object.assign(todosDocentes, data.docenteMap);
+        if (data.recursantesMap) Object.assign(todosRecursantes, data.recursantesMap);
+    });
+
+    if (!todosAlumnos.length) {
+        alert('No se encontraron alumnos para este curso');
+        return;
+    }
+
+    const es4o5 = anioDesde(curso) >= 4;
+    const esBimestre = periodo.includes('Bimestre');
+
+    const paginasHTML = todosAlumnos.map(alumno => {
+        const alumnoKey = Object.keys(todasNotas).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
+        const notas = todasNotas[alumnoKey] || {};
+        const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+        const materiasRec = todosRecursantes?.[alumno.dni];
+        const materiasOverride = materiasRec?.length ? materiasRec : undefined;
+        return usarFormato45
+            ? paginaInforme45(alumno, curso, '', periodo, preceptor, notas, todosDocentes, materiasOverride)
+            : paginaInforme13(alumno, curso, '', periodo, preceptor, notas, todosDocentes, materiasOverride);
+    }).join('\n');
+
+    abrirInformeEnPestana(paginasHTML);
 }
 
 async function descargarLibroTodosCursos() {
-    const anio = document.getElementById('input-anio-libro').value;
     const periodo = document.getElementById('select-periodo-libro').value;
-    const cursos = Object.keys(materiasPorCursoLibro);
-    let usuarios = [];
-    try {
-        const resp = await fetch(URL_WEB_APP + '?action=listarUsuarios&correo=' + encodeURIComponent(sesionActual.correo));
-        const res = await resp.json();
-        if (res.success) usuarios = res.usuarios || [];
-    } catch (e) { console.warn('No se pudieron cargar usuarios para docentes', e); }
+    const turno = document.getElementById('select-turno-libro').value;
 
-    let htmlCompleto = `
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>Libro Escolar - Todos los Cursos</title>
-        <style>
-            @page { size: A4 landscape; margin: 10mm; }
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: Arial, sans-serif; font-size: 8pt; color: #333; padding: 15px; }
-            .page-break { page-break-after: always; }
-        </style>
-    </head>
-    <body>`;
+    if (!periodo) {
+        alert('Seleccione un período');
+        return;
+    }
 
-    cursos.forEach((curso, idx) => {
-        const htmlCurso = generarHTMLLibroCurso(curso, usuarios, periodo, anio);
-        const bodyMatch = htmlCurso.match(/<body>([\s\S]*)<\/body>/);
-        if (bodyMatch) {
-            htmlCompleto += bodyMatch[1];
-            if (idx < cursos.length - 1) htmlCompleto += '<div class="page-break"></div>';
-        }
-    });
+    const spinner = document.getElementById('spinner-libro');
+    if (spinner) {
+        spinner.style.display = 'inline';
+        spinner.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando informes...';
+    }
 
-    htmlCompleto += `
-        <div class="no-print" style="text-align:center; margin-top:20px;">
-            <button onclick="window.print()" style="padding:10px 30px; font-size:12pt; cursor:pointer;">
-                <i class="fas fa-print"></i> Imprimir / Guardar como PDF
-            </button>
-        </div>
-    </body>
-    </html>`;
+    const cursos = [];
+    const select = document.getElementById('select-curso-libro');
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].value) cursos.push(select.options[i].value);
+    }
 
-    imprimirHTMLenIframe(htmlCompleto);
+    const turnos = turno ? [turno] : ['MAÑANA', 'TARDE'];
+    let todasPaginas = [];
+    const total = cursos.length;
+
+    for (let ci = 0; ci < cursos.length; ci++) {
+        const curso = cursos[ci];
+        if (spinner) spinner.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Procesando ${ci+1}/${total}: ${curso}...`;
+
+        let todosAlumnos = [];
+        let todasNotas = {};
+        let todosDocentes = {};
+        let todosRecursantes = {};
+        let preceptor = '';
+
+        const resultados = await Promise.all(turnos.map(async t => {
+            try {
+                const url = `${URL_WEB_APP}?action=obtenerInformeCurso`
+                    + `&correo=${encodeURIComponent(sesionActual.correo)}`
+                    + `&curso=${encodeURIComponent(curso)}`
+                    + `&turno=${encodeURIComponent(t)}`
+                    + `&periodo=${encodeURIComponent(periodo)}`;
+                const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+                return await resp.json();
+            } catch (e) {
+                console.warn('Error cargando datos para', curso, t, e);
+                return null;
+            }
+        }));
+
+        resultados.forEach(data => {
+            if (!data || !data.success) return;
+            if (!preceptor && data.preceptor) preceptor = data.preceptor;
+            if (data.alumnos) {
+                data.alumnos.forEach(a => {
+                    if (!todosAlumnos.some(x => x.dni === a.dni)) {
+                        todosAlumnos.push(a);
+                    }
+                });
+            }
+            if (data.notasMap) Object.assign(todasNotas, data.notasMap);
+            if (data.docenteMap) Object.assign(todosDocentes, data.docenteMap);
+            if (data.recursantesMap) Object.assign(todosRecursantes, data.recursantesMap);
+        });
+
+        if (!todosAlumnos.length) continue;
+
+        const es4o5 = anioDesde(curso) >= 4;
+        const esBimestre = periodo.includes('Bimestre');
+
+        todosAlumnos.forEach(alumno => {
+            const alumnoKey = Object.keys(todasNotas).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
+            const notas = todasNotas[alumnoKey] || {};
+            const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+            const materiasRec = todosRecursantes?.[alumno.dni];
+            const materiasOverride = materiasRec?.length ? materiasRec : undefined;
+            const pagina = usarFormato45
+                ? paginaInforme45(alumno, curso, '', periodo, preceptor, notas, todosDocentes, materiasOverride)
+                : paginaInforme13(alumno, curso, '', periodo, preceptor, notas, todosDocentes, materiasOverride);
+            todasPaginas.push(pagina);
+        });
+    }
+
+    if (spinner) spinner.style.display = 'none';
+
+    if (!todasPaginas.length) {
+        alert('No se encontraron alumnos en ningún curso');
+        return;
+    }
+
+    abrirInformeEnPestana(todasPaginas.join('\n'));
 }
 
 const MATERIAS_BIMESTRE_1_3 = {
