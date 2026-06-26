@@ -345,6 +345,7 @@ let datosSheetsCargados = false;
 let sesionActual = null;
 let mainTabActual = 'calificaciones';
 let editandoCorreo = '';
+let editandoRol = '';
 let alumnosDesdeSheets = [];
 let listaPreceptoresGlobal = [];
 let recursantesAgrupados = {};
@@ -544,9 +545,14 @@ async function iniciarApp() {
 
     await cargarDesdeSheetsAlIniciar();
     await cargarFechasLimiteGlobal();
+
+    if (['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol)) {
+        switchMainTab('alumnos');
+    }
 }
 
 function configurarUIporRol() {
+    const tabEspacios = document.getElementById('tab-espacios');
     const tabGestion = document.getElementById('tab-gestion');
     const tabAlumnos = document.getElementById('tab-alumnos');
     const accionesGuardar = document.getElementById('acciones-guardar');
@@ -560,24 +566,28 @@ function configurarUIporRol() {
     const esCualquierPreceptor = esJefePreceptor || esPreceptor;
 
     if (esAdmin) {
+        tabEspacios.style.display = 'inline-flex';
         tabGestion.style.display = 'inline-flex';
         tabAlumnos.style.display = 'inline-flex';
         accionesGuardar.style.display = 'none';
         avisoReadonly.style.display = 'block';
         if (dangerZone) dangerZone.style.display = 'block';
     } else if (esJefePreceptor) {
+        tabEspacios.style.display = 'none';
         tabGestion.style.display = 'none';
         tabAlumnos.style.display = 'inline-flex';
         accionesGuardar.style.display = 'none';
         avisoReadonly.style.display = 'block';
         if (dangerZone) dangerZone.style.display = 'none';
     } else if (esPreceptor) {
+        tabEspacios.style.display = 'none';
         tabGestion.style.display = 'none';
         tabAlumnos.style.display = 'inline-flex';
         accionesGuardar.style.display = 'none';
         avisoReadonly.style.display = 'block';
         if (dangerZone) dangerZone.style.display = 'none';
     } else {
+        tabEspacios.style.display = 'inline-flex';
         tabGestion.style.display = 'none';
         tabAlumnos.style.display = 'none';
         accionesGuardar.style.display = 'flex';
@@ -612,13 +622,13 @@ function switchMainTab(tab) {
     } else if (tab === 'alumnos') {
         document.getElementById('tab-alumnos').classList.add('active');
         document.getElementById('panel-alumnos').style.display = 'block';
-        const esJefePreceptor = sesionActual.rol === 'jefe_preceptor' || sesionActual.rol === 'sub_jefe_preceptor';
+        const esJefePreceptor = sesionActual.rol === 'jefe_preceptor' || sesionActual.rol === 'sub_jefe_preceptor' || sesionActual.rol === 'admin';
         const seccionPreceptores = document.getElementById('seccion-preceptores');
         if (seccionPreceptores) {
             seccionPreceptores.style.display = esJefePreceptor ? 'block' : 'none';
         }
         if (typeof cargarListaAlumnosGestion === 'function') cargarListaAlumnosGestion();
-        if (typeof renderizarPreceptores === 'function') renderizarPreceptores();
+        if (typeof cargarPreceptores === 'function') cargarPreceptores();
     }
 }
 
@@ -1474,7 +1484,7 @@ function renderizarTablaUsuarios(usuarios, sistemaActivo) {
         const esAdminGestionTabla = sesionActual.rol === 'admin';
         const esJefePreceptorTabla = sesionActual.rol === 'jefe_preceptor' || sesionActual.rol === 'sub_jefe_preceptor';
         if (esAdminGestionTabla) {
-            if (u.rol === 'docente' || (u.rol === 'admin' && !esAdminPrincipal)) {
+            if (u.rol === 'docente' || u.rol === 'preceptor' || u.rol === 'jefe_preceptor' || u.rol === 'sub_jefe_preceptor' || (u.rol === 'admin' && !esAdminPrincipal)) {
                 acciones += `<button class="btn-action btn-edit-mat" onclick="abrirModalMaterias('${u.correo}')"><i class="fas fa-book"></i></button>`;
             }
             if (!esAdminPrincipal || sesionActual.correo === '/admin32/@cpem32.edu.ar') {
@@ -1630,7 +1640,42 @@ function mostrarModalAgregar() {
         html += `<label class="check-item"><input type="checkbox" value="${item.curso}: ${item.materia}"> ${item.display}</label>`;
     });
     container.innerHTML = html;
+    document.getElementById('filtro-materias-nuevas').style.display = 'block';
+    document.getElementById('label-materias-nuevas').textContent = 'Materias permitidas (Curso → Materia)';
     document.getElementById('modal-agregar').style.display = 'flex';
+}
+
+function cambiarTipoNuevoRol() {
+    var rol = document.getElementById('nuevo-rol').value;
+    var esPreceptor = rol === 'preceptor' || rol === 'jefe_preceptor' || rol === 'sub_jefe_preceptor';
+    var container = document.getElementById('materias-multiselect');
+    var label = document.getElementById('label-materias-nuevas');
+    var filtro = document.getElementById('filtro-materias-nuevas');
+    if (esPreceptor) {
+        label.textContent = 'Cursos asignados';
+        filtro.style.display = 'none';
+        var cursos = ['1 A','1 B','1 C','1 D','1 E','2 A','2 B','2 C','2 D','3 A','3 B','3 C','4 A','4 B','4 C','5 A','5 B','5 C'];
+        var html = '';
+        cursos.forEach(function(c) {
+            html += '<label class="check-item"><input type="checkbox" value="' + c + '"> ' + c + '</label>';
+        });
+        container.innerHTML = html;
+    } else {
+        label.textContent = 'Materias permitidas (Curso → Materia)';
+        filtro.style.display = 'block';
+        container.innerHTML = '';
+        var todas = obtenerTodasLasMaterias();
+        var html = '';
+        var ultimoCurso = '';
+        todas.forEach(function(item) {
+            if (item.curso !== ultimoCurso) {
+                ultimoCurso = item.curso;
+                html += '<h4>' + item.curso + '</h4>';
+            }
+            html += '<label class="check-item"><input type="checkbox" value="' + item.curso + ': ' + item.materia + '"> ' + item.display + '</label>';
+        });
+        container.innerHTML = html;
+    }
 }
 
 function abrirModalMaterias(correo) {
@@ -1647,20 +1692,33 @@ function abrirModalMaterias(correo) {
             if (!res.success) { container.innerHTML = '<p style="color:red;">' + (res.error || 'Error al cargar') + '</p>'; return; }
             const usuario = (res.usuarios || []).find(u => u.correo === correo);
             if (!usuario) { container.innerHTML = '<p style="color:red;">Usuario no encontrado</p>'; return; }
-            const seleccionadas = (usuario.materias_permitidas || []).map(s => s.trim());
-            const todas = obtenerTodasLasMaterias();
-            let html = '';
-            let ultimoCurso = '';
-            todas.forEach(item => {
-                if (item.curso !== ultimoCurso) {
-                    ultimoCurso = item.curso;
-                    html += `<h4>${item.curso}</h4>`;
-                }
-                const val = item.curso + ': ' + item.materia;
-                const checked = seleccionadas.indexOf(val) !== -1 ? 'checked' : '';
-                html += `<label class="check-item"><input type="checkbox" value="${val}" ${checked}> ${item.display}</label>`;
-            });
-            container.innerHTML = html;
+            editandoRol = usuario.rol;
+            const esPreceptor = usuario.rol === 'preceptor' || usuario.rol === 'jefe_preceptor' || usuario.rol === 'sub_jefe_preceptor';
+            if (esPreceptor) {
+              var cursosSeleccionados = (usuario.cursos_permitidos || []).map(s => s.trim());
+              var cursos = ['1 A','1 B','1 C','1 D','1 E','2 A','2 B','2 C','2 D','3 A','3 B','3 C','4 A','4 B','4 C','5 A','5 B','5 C'];
+              var html = '<label style="font-weight:bold;display:block;margin-bottom:8px;">Cursos asignados</label>';
+              cursos.forEach(function(c) {
+                var checked = cursosSeleccionados.indexOf(c) !== -1 ? 'checked' : '';
+                html += '<label class="check-item"><input type="checkbox" value="' + c + '" ' + checked + '> ' + c + '</label>';
+              });
+              container.innerHTML = html;
+            } else {
+              const seleccionadas = (usuario.materias_permitidas || []).map(s => s.trim());
+              const todas = obtenerTodasLasMaterias();
+              let html = '';
+              let ultimoCurso = '';
+              todas.forEach(item => {
+                  if (item.curso !== ultimoCurso) {
+                      ultimoCurso = item.curso;
+                      html += `<h4>${item.curso}</h4>`;
+                  }
+                  const val = item.curso + ': ' + item.materia;
+                  const checked = seleccionadas.indexOf(val) !== -1 ? 'checked' : '';
+                  html += `<label class="check-item"><input type="checkbox" value="${val}" ${checked}> ${item.display}</label>`;
+              });
+              container.innerHTML = html;
+            }
         })
         .catch(() => { container.innerHTML = '<p style="color:red;">Error de conexion</p>'; });
 }
@@ -1678,17 +1736,27 @@ function confirmarAgregarUsuario() {
     const password = document.getElementById('nuevo-password').value;
     const rol = document.getElementById('nuevo-rol').value;
     const checks = document.querySelectorAll('#materias-multiselect input[type="checkbox"]:checked');
-    const materiasSeleccionadas = Array.from(checks).map(cb => cb.value);
+    const seleccionadas = Array.from(checks).map(cb => cb.value);
     if (!correo || !password) { alert('Complete correo y contraseña'); return; }
+    if (!correo.endsWith('@cpem32.edu.ar')) {
+        alert('El correo debe ser institucional (@cpem32.edu.ar)');
+        return;
+    }
     const btn = document.querySelector('#modal-agregar .btn-confirm');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    var datos = { correo: correo, password: password, rol: rol, materias_permitidas: [] };
+    if (rol === 'preceptor' || rol === 'jefe_preceptor' || rol === 'sub_jefe_preceptor') {
+        datos.cursos_permitidos = seleccionadas;
+    } else {
+        datos.materias_permitidas = seleccionadas;
+    }
     fetch(URL_WEB_APP, {
         method: 'POST', mode: 'cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
             action: 'agregarUsuario', correoAdmin: sesionActual.correo,
-            datos: { correo: correo, password: password, rol: rol, materias_permitidas: materiasSeleccionadas }
+            datos: datos
         })
     })
     .then(r => r.json())
@@ -1703,20 +1771,25 @@ function confirmarAgregarUsuario() {
 
 function confirmarEditarMaterias() {
     const checks = document.querySelectorAll('#materias-editar-checklist input[type="checkbox"]:checked');
-    const materiasSeleccionadas = Array.from(checks).map(cb => cb.value);
+    const seleccionadas = Array.from(checks).map(cb => cb.value);
     const nuevoCorreo = document.getElementById('editar-correo-input').value.trim();
     if (!nuevoCorreo) { alert('El correo no puede estar vacío'); return; }
     const btn = document.querySelector('#modal-materias .btn-confirm');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    var body = {
+        action: 'actualizarMaterias', correoAdmin: sesionActual.correo,
+        correoDocente: editandoCorreo, nuevoCorreo: nuevoCorreo
+    };
+    if (editandoRol === 'preceptor' || editandoRol === 'jefe_preceptor' || editandoRol === 'sub_jefe_preceptor') {
+        body.cursos = seleccionadas;
+    } else {
+        body.materias = seleccionadas;
+    }
     fetch(URL_WEB_APP, {
         method: 'POST', mode: 'cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-            action: 'actualizarMaterias', correoAdmin: sesionActual.correo,
-            correoDocente: editandoCorreo, nuevoCorreo: nuevoCorreo,
-            materias: materiasSeleccionadas
-        })
+        body: JSON.stringify(body)
     })
     .then(r => r.json())
     .then(res => {
@@ -2413,24 +2486,55 @@ async function cargarListaAlumnosGestion() {
     const tbody = document.getElementById('tbody-alumnos-gestion');
     tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;"><i class="fas fa-spinner fa-spin"></i> Cargando alumnos...</td></tr>';
 
-    const esPreceptor = sesionActual && sesionActual.rol === 'preceptor';
+    const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
     let cursosPermitidos = (sesionActual?.cursos_permitidos || []).map(c => String(c).trim().toUpperCase());
-    const turnoPreceptor = esPreceptor ? (sesionActual.turno || '').trim().toUpperCase() : '';
+    const turnoAsignado = (sesionActual.turno || '').trim().toUpperCase();
+    var turnosList = turnoAsignado ? turnoAsignado.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
 
     const selTurno = document.getElementById('filtro-turno-alumnos');
     const selCurso = document.getElementById('filtro-curso-alumnos');
-    if (esPreceptor) {
-        const cursoAsignado = cursosPermitidos.length > 0 ? cursosPermitidos[0] : '';
-        if (selCurso) { selCurso.value = cursoAsignado; selCurso.disabled = true; }
-        if (selTurno) { selTurno.value = turnoPreceptor; selTurno.disabled = true; }
+
+    if (esPreceptorOjefe && cursosPermitidos.length > 0) {
+        // populate filter with only assigned courses
+        selCurso.innerHTML = '<option value="">Todos</option>';
+        cursosPermitidos.forEach(function(c) {
+            selCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
+        });
+        if (cursosPermitidos.length === 1) {
+            selCurso.value = cursosPermitidos[0];
+            selCurso.disabled = true;
+        } else {
+            selCurso.disabled = false;
+        }
+        // populate turno filter with assigned turnos
+        if (turnosList.length > 0) {
+            selTurno.innerHTML = '<option value="">Todos</option>';
+            turnosList.forEach(function(t) {
+                selTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+            });
+            if (turnosList.length === 1) {
+                selTurno.value = turnosList[0];
+                selTurno.disabled = true;
+            } else {
+                selTurno.disabled = false;
+            }
+        } else {
+            selTurno.disabled = false;
+        }
     } else {
-        if (selTurno) selTurno.disabled = false;
-        if (selCurso) selCurso.disabled = false;
+        selCurso.innerHTML = '<option value="">Todos</option><option value="1 A">1 A</option><option value="1 B">1 B</option><option value="1 C">1 C</option><option value="1 D">1 D</option><option value="1 E">1 E</option><option value="2 A">2 A</option><option value="2 B">2 B</option><option value="2 C">2 C</option><option value="2 D">2 D</option><option value="3 A">3 A</option><option value="3 B">3 B</option><option value="3 C">3 C</option><option value="4 A">4 A</option><option value="4 B">4 B</option><option value="4 C">4 C</option><option value="5 A">5 A</option><option value="5 B">5 B</option><option value="5 C">5 C</option>';
+        selTurno.innerHTML = '<option value="">Todos</option><option value="MAÑANA">MAÑANA</option><option value="TARDE">TARDE</option>';
+        selTurno.disabled = false;
+        selCurso.disabled = false;
     }
 
     try {
-        const cursoParam = esPreceptor && cursosPermitidos.length > 0 ? cursosPermitidos[0] : '';
-        const turnoParam = esPreceptor && turnoPreceptor ? turnoPreceptor : '';
+        var cursoParam = '';
+        var turnoParam = '';
+        if (esPreceptorOjefe) {
+            if (cursosPermitidos.length > 0) cursoParam = cursosPermitidos.join(',');
+            if (turnosList.length > 0) turnoParam = turnosList.join(',');
+        }
         const url = `${URL_WEB_APP}?action=obtenerAlumnos&correo=${encodeURIComponent(sesionActual.correo)}&curso=${encodeURIComponent(cursoParam)}&turno=${encodeURIComponent(turnoParam)}`;
         const resp = await fetch(url, { method: 'GET', mode: 'cors' });
         const resultado = await resp.json();
@@ -2454,18 +2558,19 @@ function renderizarTablaAlumnos() {
     const turnoFiltro = document.getElementById('filtro-turno-alumnos').value;
     const cursoFiltro = document.getElementById('filtro-curso-alumnos').value;
 
-    const esPreceptor = sesionActual && sesionActual.rol === 'preceptor';
+    const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
     let cursosPermitidos = (sesionActual?.cursos_permitidos || []).map(c => String(c).trim().toUpperCase());
-    const turnoPreceptor = esPreceptor ? (sesionActual.turno || '').trim().toUpperCase() : '';
+    const turnoAsignado = esPreceptorOjefe ? (sesionActual.turno || '').trim().toUpperCase() : '';
+    var turnosList = turnoAsignado ? turnoAsignado.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
 
     let dniEnSheets = new Set(alumnosDesdeSheets.map(a => String(a.dni).trim()));
     let alumnos = [...alumnosDesdeSheets.map(a => ({ ...a, esRecursante: false, materia: '' }))];
 
     Object.keys(baseDeDatosAlumnos).forEach(turno => {
         Object.keys(baseDeDatosAlumnos[turno]).forEach(curso => {
-            if (esPreceptor) {
+            if (esPreceptorOjefe) {
                 if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
-                if (turnoPreceptor && turno.trim().toUpperCase() !== turnoPreceptor) return;
+                if (turnosList.length > 0 && turnosList.indexOf(turno.trim().toUpperCase()) === -1) return;
             }
             baseDeDatosAlumnos[turno][curso].forEach((alumno, idx) => {
                 if (!dniEnSheets.has(String(alumno.dni).trim())) {
@@ -2478,9 +2583,9 @@ function renderizarTablaAlumnos() {
     Object.keys(recursantesAgrupados).forEach(curso => {
         Object.keys(recursantesAgrupados[curso]).forEach(dni => {
             const r = recursantesAgrupados[curso][dni];
-            if (esPreceptor) {
+            if (esPreceptorOjefe) {
                 if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
-                if (turnoPreceptor && (r.turno || '').trim().toUpperCase() !== turnoPreceptor) return;
+                if (turnosList.length > 0 && turnosList.indexOf((r.turno || '').trim().toUpperCase()) === -1) return;
             }
             alumnos.push({ nombre: r.nombre, dni, turno: r.turno, curso, esRecursante: true, materia: r.materias.join(', ') });
         });
@@ -2542,21 +2647,35 @@ function mostrarModalAgregarAlumno() {
     const selectCurso = document.getElementById('nuevo-alumno-curso');
     const selectTurno = document.getElementById('nuevo-alumno-turno');
 
-    const esPreceptor = sesionActual && sesionActual.rol === 'preceptor';
-    if (esPreceptor) {
+    const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
+    if (esPreceptorOjefe) {
         const cursosPermitidos = (sesionActual.cursos_permitidos || []);
-        const cursoAsignado = cursosPermitidos.length > 0 ? cursosPermitidos[0] : '';
         const turnoAsignado = (sesionActual.turno || '').trim();
-        selectCurso.value = cursoAsignado;
-        selectCurso.disabled = true;
-        if (turnoAsignado) {
-            selectTurno.value = turnoAsignado;
+        var turnosList = turnoAsignado ? turnoAsignado.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+        // populate curso dropdown with only assigned courses
+        selectCurso.innerHTML = '<option value="">Seleccione Curso</option>';
+        cursosPermitidos.forEach(function(c) {
+            selectCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
+        });
+        if (cursosPermitidos.length === 1) {
+            selectCurso.value = cursosPermitidos[0];
+            selectCurso.disabled = true;
+        } else {
+            selectCurso.disabled = false;
+        }
+        // populate turno dropdown with assigned turnos
+        selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+        turnosList.forEach(function(t) {
+            selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+        });
+        if (turnosList.length === 1) {
+            selectTurno.value = turnosList[0];
             selectTurno.disabled = true;
         } else {
-            selectTurno.value = '';
             selectTurno.disabled = false;
         }
     } else {
+        selectCurso.innerHTML = '<option value="">Seleccione Curso</option><option value="1 A">1 A</option><option value="1 B">1 B</option><option value="1 C">1 C</option><option value="1 D">1 D</option><option value="1 E">1 E</option><option value="2 A">2 A</option><option value="2 B">2 B</option><option value="2 C">2 C</option><option value="2 D">2 D</option><option value="3 A">3 A</option><option value="3 B">3 B</option><option value="3 C">3 C</option><option value="4 A">4 A</option><option value="4 B">4 B</option><option value="4 C">4 C</option><option value="5 A">5 A</option><option value="5 B">5 B</option><option value="5 C">5 C</option>';
         selectCurso.value = '';
         selectCurso.disabled = false;
         selectTurno.value = '';
@@ -2584,7 +2703,7 @@ function mostrarModalEditarAlumno(turno, curso, dni) {
         return;
     }
 
-    const esPreceptor = sesionActual && sesionActual.rol === 'preceptor';
+    const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
     const selectCurso = document.getElementById('nuevo-alumno-curso');
     const selectTurno = document.getElementById('nuevo-alumno-turno');
 
@@ -2593,14 +2712,32 @@ function mostrarModalEditarAlumno(turno, curso, dni) {
     document.getElementById('alumno-dni-original').value = dniStr;
     document.getElementById('nuevo-alumno-nombre').value = alumno.nombre;
     document.getElementById('nuevo-alumno-dni').value = alumno.dni;
-    selectCurso.value = alumno.curso || curso;
-    selectTurno.value = alumno.turno || turno;
 
-    if (esPreceptor) {
-        selectCurso.disabled = true;
-        selectTurno.disabled = !!( (sesionActual.turno || '').trim() );
+    if (esPreceptorOjefe) {
+        const cursosPermitidos = (sesionActual.cursos_permitidos || []);
+        const turnoAsignado = (sesionActual.turno || '').trim();
+        var turnosList = turnoAsignado ? turnoAsignado.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+        selectCurso.innerHTML = '<option value="">Seleccione Curso</option>';
+        cursosPermitidos.forEach(function(c) {
+            selectCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
+        });
+        selectCurso.value = alumno.curso || curso;
+        if (cursosPermitidos.length === 1) {
+            selectCurso.disabled = true;
+        } else {
+            selectCurso.disabled = false;
+        }
+        selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+        turnosList.forEach(function(t) {
+            selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+        });
+        selectTurno.value = alumno.turno || turno;
+        selectTurno.disabled = turnosList.length === 1;
     } else {
+        selectCurso.innerHTML = '<option value="">Seleccione Curso</option><option value="1 A">1 A</option><option value="1 B">1 B</option><option value="1 C">1 C</option><option value="1 D">1 D</option><option value="1 E">1 E</option><option value="2 A">2 A</option><option value="2 B">2 B</option><option value="2 C">2 C</option><option value="2 D">2 D</option><option value="3 A">3 A</option><option value="3 B">3 B</option><option value="3 C">3 C</option><option value="4 A">4 A</option><option value="4 B">4 B</option><option value="4 C">4 C</option><option value="5 A">5 A</option><option value="5 B">5 B</option><option value="5 C">5 C</option>';
+        selectCurso.value = alumno.curso || curso;
         selectCurso.disabled = false;
+        selectTurno.value = alumno.turno || turno;
         selectTurno.disabled = false;
     }
 
@@ -2935,6 +3072,9 @@ function renderizarPreceptores() {
             <td>${p.turno || '-'}</td>
             <td>${p.curso || '-'}</td>
             <td>
+                <button class="btn-action" onclick="mostrarModalEditarPreceptor('${p.correo}')" style="background:#ffc107;color:#333;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;margin-right:4px;" title="Editar preceptor">
+                    <i class="fas fa-edit"></i>
+                </button>
                 <button class="btn-action btn-delete" onclick="eliminarPreceptor('${p.correo}')" title="Eliminar preceptor">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -2948,28 +3088,72 @@ function filtrarPreceptores() {
 }
 
 function mostrarModalAgregarPreceptor() {
+    document.getElementById('preceptor-correo-original').value = '';
     document.getElementById('preceptor-correo').value = '';
+    document.getElementById('preceptor-correo').disabled = false;
     document.getElementById('preceptor-password').value = '';
-    document.getElementById('preceptor-turno').value = '';
-    document.getElementById('preceptor-curso').value = '';
+    document.getElementById('preceptor-pass-label').textContent = 'inicial';
+    document.getElementById('preceptor-modal-titulo').textContent = 'Agregar Preceptor';
+    document.getElementById('preceptor-modal-btn').textContent = 'Guardar Preceptor';
+    // uncheck all turno checkboxes
+    document.querySelectorAll('#preceptor-turnos input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
+    var container = document.getElementById('preceptor-cursos');
+    var cursos = ['1 A','1 B','1 C','1 D','1 E','2 A','2 B','2 C','2 D','3 A','3 B','3 C','4 A','4 B','4 C','5 A','5 B','5 C'];
+    container.innerHTML = cursos.map(function(c) {
+        return '<label class="check-item"><input type="checkbox" value="' + c + '"> ' + c + '</label>';
+    }).join('');
+    document.getElementById('modal-agregar-preceptor').style.display = 'flex';
+}
+
+function mostrarModalEditarPreceptor(correo) {
+    var p = listaPreceptoresGlobal.find(function(x) { return x.correo === correo; });
+    if (!p) { alert('Preceptor no encontrado'); return; }
+
+    document.getElementById('preceptor-correo-original').value = correo;
+    document.getElementById('preceptor-correo').value = correo;
+    document.getElementById('preceptor-correo').disabled = false;
+    document.getElementById('preceptor-password').value = '';
+    document.getElementById('preceptor-pass-label').textContent = '(dejar vacio para no cambiar)';
+    document.getElementById('preceptor-modal-titulo').textContent = 'Editar Preceptor';
+    document.getElementById('preceptor-modal-btn').textContent = 'Actualizar Preceptor';
+
+    // marcar turnos
+    var turnosPreceptor = (p.turno || '').split(',').map(function(s) { return s.trim().toUpperCase(); });
+    document.querySelectorAll('#preceptor-turnos input[type="checkbox"]').forEach(function(cb) {
+        cb.checked = turnosPreceptor.indexOf(cb.value.toUpperCase()) !== -1;
+    });
+
+    var cursosAsignados = (p.cursos || '').split(',').map(function(s) { return s.trim(); });
+    var container = document.getElementById('preceptor-cursos');
+    var todos = ['1 A','1 B','1 C','1 D','1 E','2 A','2 B','2 C','2 D','3 A','3 B','3 C','4 A','4 B','4 C','5 A','5 B','5 C'];
+    container.innerHTML = todos.map(function(c) {
+        var checked = cursosAsignados.indexOf(c) !== -1 ? ' checked' : '';
+        return '<label class="check-item"><input type="checkbox" value="' + c + '"' + checked + '> ' + c + '</label>';
+    }).join('');
+
     document.getElementById('modal-agregar-preceptor').style.display = 'flex';
 }
 
 async function confirmarAgregarPreceptor() {
+    const correoOriginal = document.getElementById('preceptor-correo-original').value;
     const correo = document.getElementById('preceptor-correo').value.trim();
     const password = document.getElementById('preceptor-password').value;
-    const turno = document.getElementById('preceptor-turno').value;
-    const curso = document.getElementById('preceptor-curso').value;
+    var turnoChecks = document.querySelectorAll('#preceptor-turnos input[type="checkbox"]:checked');
+    var turnos = Array.from(turnoChecks).map(function(cb) { return cb.value; });
+    var checks = document.querySelectorAll('#preceptor-cursos input[type="checkbox"]:checked');
+    var cursos = Array.from(checks).map(function(cb) { return cb.value; });
 
-    if (!correo || !password || !turno || !curso) {
-        alert('Complete todos los campos');
+    const esEdicion = correoOriginal !== '';
+
+    if (!correo || turnos.length === 0 || cursos.length === 0) {
+        alert('Complete todos los campos y seleccione al menos un turno y un curso');
         return;
     }
     if (!correo.endsWith('@cpem32.edu.ar')) {
         alert('El correo debe ser institucional (@cpem32.edu.ar)');
         return;
     }
-    if (password.length < 4) {
+    if (!esEdicion && password.length < 4) {
         alert('La contrasena debe tener al menos 4 caracteres');
         return;
     }
@@ -2980,29 +3164,30 @@ async function confirmarAgregarPreceptor() {
             mode: 'cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
-                action: 'agregarPreceptor',
+                action: esEdicion ? 'actualizarPreceptor' : 'agregarPreceptor',
                 correoSolicitante: sesionActual.correo,
+                correoOriginal: esEdicion ? correoOriginal : undefined,
                 datos: {
                     correo: correo,
                     password: password,
                     rol: 'preceptor',
-                    turno: turno,
-                    curso: curso
+                    turno: turnos.join(','),
+                    cursos: cursos
                 }
             })
         });
         const res = await resp.json();
 
         if (res.success) {
-            alert('Preceptor agregado exitosamente');
+            alert(esEdicion ? 'Preceptor actualizado exitosamente' : 'Preceptor agregado exitosamente');
             cerrarModal('modal-agregar-preceptor');
             cargarPreceptores();
         } else {
-            alert('Error: ' + (res.error || 'No se pudo agregar el preceptor'));
+            alert('Error: ' + (res.error || 'No se pudo ' + (esEdicion ? 'actualizar' : 'agregar') + ' el preceptor'));
         }
     } catch (err) {
         console.error(err);
-        alert('Error de conexion al agregar preceptor');
+        alert('Error de conexion al ' + (esEdicion ? 'actualizar' : 'agregar') + ' preceptor');
     }
 }
 
