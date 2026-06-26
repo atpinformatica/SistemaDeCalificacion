@@ -222,12 +222,33 @@ async function verificarAcceso() {
     btnLogin.disabled = false;
 }
 
+async function precargarAlumnosDesdeSheets() {
+    try {
+        const url = URL_WEB_APP + '?action=obtenerAlumnos&correo=' + encodeURIComponent(sesionActual.correo) + '&curso=&turno=';
+        const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+        const resultado = await resp.json();
+        if (resultado.success && resultado.alumnos) {
+            alumnosDesdeSheets = resultado.alumnos;
+            var nuevo = {};
+            resultado.alumnos.forEach(function(a) {
+                if (!nuevo[a.turno]) nuevo[a.turno] = {};
+                if (!nuevo[a.turno][a.curso]) nuevo[a.turno][a.curso] = [];
+                nuevo[a.turno][a.curso].push({ dni: a.dni, nombre: a.nombre });
+            });
+            Object.assign(baseDeDatosAlumnos, nuevo);
+        }
+    } catch(e) {
+        console.warn('Error precargando alumnos desde Sheets:', e);
+    }
+}
+
 async function iniciarApp() {
     if (!sesionActual) return;
 
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app-main').style.display = 'block';
 
+    await precargarAlumnosDesdeSheets();
     await cargarRecursantes();
     await cargarFrasesConfig();
 
@@ -329,8 +350,20 @@ function switchMainTab(tab) {
 function actualizarSelectorTurnos() {
     const selTurno = document.getElementById('turnos');
     if (!selTurno) return;
+
+    var turnosDisponibles = Object.keys(baseDeDatosAlumnos);
+    if (turnosDisponibles.length === 0) turnosDisponibles = ['MAÑANA', 'TARDE'];
+
+    selTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+    turnosDisponibles.forEach(function(t) {
+        selTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+    });
+
     if (sesionActual && sesionActual.rol === 'preceptor' && sesionActual.turno) {
-        selTurno.value = sesionActual.turno;
+        var turnoAsignado = sesionActual.turno.trim().toUpperCase();
+        if (turnosDisponibles.indexOf(turnoAsignado) >= 0) {
+            selTurno.value = turnoAsignado;
+        }
         selTurno.disabled = true;
     } else {
         selTurno.disabled = false;
@@ -374,16 +407,34 @@ async function cargarFrasesConfig() {
     }
 }
 
-function obtenerFrasesDropdown(anio, materia, pos) {
-    if (!frasesConfig[anio]) return null;
-    const materiaNorm = materia.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const keys = Object.keys(frasesConfig[anio]);
-    const matchKey = keys.find(k =>
-        k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === materiaNorm
-    );
-    if (!matchKey) return null;
-    const arr = frasesConfig[anio][matchKey]?.[pos];
-    return arr?.length ? arr : null;
+function obtenerFrasesDropdown(curso, materia, pos) {
+    if (!curso && !materia) return null;
+    var anioNum = String(parseInt(String(curso).charAt(0)));
+    // Try full curso name first
+    if (frasesConfig[curso]) {
+        var materiaNorm = materia.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        var keys = Object.keys(frasesConfig[curso]);
+        var matchKey = keys.find(function(k) {
+            return k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === materiaNorm;
+        });
+        if (matchKey) {
+            var arr = frasesConfig[curso][matchKey]?.[pos];
+            if (arr && arr.length) return arr;
+        }
+    }
+    // Fallback to year number
+    if (frasesConfig[anioNum]) {
+        materiaNorm = materia.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        keys = Object.keys(frasesConfig[anioNum]);
+        matchKey = keys.find(function(k) {
+            return k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === materiaNorm;
+        });
+        if (matchKey) {
+            arr = frasesConfig[anioNum][matchKey]?.[pos];
+            if (arr && arr.length) return arr;
+        }
+    }
+    return null;
 }
 
 function actualizarMaterias() {
@@ -566,10 +617,7 @@ function actualizarSelectorCursos() {
     
     if (turnoSeleccionado && baseDeDatosAlumnos[turnoSeleccionado]) {
         Object.keys(baseDeDatosAlumnos[turnoSeleccionado]).sort().forEach(curso => {
-            const option = document.createElement('option');
-            option.value = curso; 
-            option.textContent = curso; 
-            selectorCursos.appendChild(option);
+            selectorCursos.innerHTML += '<option value="' + curso + '">' + curso + '</option>';
         });
     }
     actualizarMaterias();
@@ -641,7 +689,7 @@ async function cargarAlumnos() {
     const datosM = memoriaGlobal[llaveID] || {};
     const añoCurso = curso ? parseInt(curso.charAt(0)) : 0;
     const esBimestre = periodo.includes("Bimestre");
-    const mostrarCualitativas = (añoCurso >= 4) || esBimestre;
+    const mostrarCualitativas = (añoCurso >= 5) || esBimestre;
     const puedeEditar = verificarPermisoEdicion(materia, curso);
 
     // Mostrar/ocultar avisos segun permisos
@@ -671,17 +719,14 @@ async function cargarAlumnos() {
             });
         }
         headerRow.innerHTML += '<th>Nota</th>';
-        // Formato extendido para 4to/5to O cualquier año en Bimestre O 1-3 Cuatrimestre
-        if (añoCurso >= 4 || periodo.includes("Bimestre") || (añoCurso <= 3 && !periodo.includes("Bimestre"))) {
-            headerRow.innerHTML += '<th>Observaciones (Frase y Nota Personal)</th>';
-        }
+        headerRow.innerHTML += '<th>Observaciones (Frase y Nota Personal)</th>';
     } else {
         // Formato para Cualitativas
-        if (añoCurso <= 3 && !periodo.includes("Bimestre")) {
-            // Formato Cuatrimestral de 1ro a 3ro
+        if (añoCurso <= 4 && !periodo.includes("Bimestre")) {
+            // Formato Cuatrimestral de 1ro a 4to
             headerRow.innerHTML += '<th>Observaciones Cualitativas (3 Frases y Nota)</th>';
         } else {
-            // Formato de Criterios para 4to/5to O 1ro a 3ro en Bimestre
+            // Formato de Criterios para 5to o bimestres
             criteriosCualitativos.forEach(crit => {
                 headerRow.innerHTML += `<th style="font-size: 0.75rem;">${crit}</th>`;
             });
@@ -752,7 +797,7 @@ async function cargarAlumnos() {
             
 
 
-            if (añoCurso >= 4 || periodo.includes("Bimestre")) {
+            if (añoCurso >= 5 || periodo.includes("Bimestre")) {
                 const valP = persistido[`sel_1`] || "";
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">
                             <select class="nota-input select-obs-multiple" data-pos="1" style="font-size:0.85rem;min-width:260px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_1', this.value)">
@@ -761,11 +806,11 @@ async function cargarAlumnos() {
                             </select>
                             <textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:40px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
                          </div></td>`;
-            } else if (añoCurso <= 3 && !periodo.includes("Bimestre")) {
+            } else {
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
                 for(let p=1; p<=3; p++) {
                     const valP = persistido[`sel_${p}`] || "";
-                    const opts = obtenerFrasesDropdown(añoCurso, materia, p) || frases;
+                    const opts = obtenerFrasesDropdown(curso, materia, p) || frases;
                     html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
                                 <option value="">Frase ${p}...</option>
                                 ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
@@ -777,12 +822,12 @@ async function cargarAlumnos() {
             
         } else {
             // --- PESTAÑA CATEGORÍAS CUALITATIVAS ---
-            if (añoCurso <= 3 && !periodo.includes("Bimestre")) {
-                // Formato de 3 DESPLEGABLES (Cuatrimestres 1-3)
+            if (añoCurso <= 4 && !periodo.includes("Bimestre")) {
+                // Formato de 3 DESPLEGABLES (Cuatrimestres 1-4)
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
                 for(let p=1; p<=3; p++) {
                     const valP = persistido[`sel_${p}`] || "";
-                    const opts = obtenerFrasesDropdown(añoCurso, materia, p) || frases;
+                    const opts = obtenerFrasesDropdown(curso, materia, p) || frases;
                     html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
                                 <option value="">Frase ${p}...</option>
                                 ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
@@ -791,7 +836,7 @@ async function cargarAlumnos() {
                 html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:45px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
                          </div></td>`;
             } else {
-                // Formato de CRITERIOS (Bimestres o 4to/5to)
+                // Formato de CRITERIOS (Bimestres o 5to)
                 criteriosCualitativos.forEach(crit => {
                     const valC = persistido[crit] || "-";
                     html += `<td><select class="nota-input select-nota-cualitativa" data-criterio="${crit}" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', '${crit}', this.value)">
@@ -1630,20 +1675,37 @@ function verificarTerminidad(fechaLimite) {
     }
 }
 
-function obtenerAreasDisponibles() {
-    const areas = new Set([
-        'Ciencias Sociales, Políticas y Económicas',
-        'Lenguajes y Producción Cultural',
-        'Ciencias Naturales',
-        'Matemática e Informática',
-        'Educación Física Integral',
-        'Educación Sexual Integral',
-        'Interárea Tecnología'
-    ]);
-    // Agrega las que ya están en frasesConfig por si aparecen otras distintas
-    Object.values(frasesConfig).forEach(porAnio => {
-        Object.keys(porAnio).forEach(a => areas.add(a));
+function actualizarSelectorCursosFrases() {
+    var anio = document.getElementById('frases-anio').value;
+    var sel = document.getElementById('frases-curso');
+    sel.innerHTML = '<option value="">Todos</option>';
+    var prefijo = anio + ' ';
+    Object.keys(materiasPorCurso).forEach(function(curso) {
+        if (curso.indexOf(prefijo) === 0) {
+            sel.innerHTML += '<option value="' + curso + '">' + curso + '</option>';
+        }
     });
+    filtrarListaAreas();
+}
+
+function obtenerAreasDisponibles() {
+    var curso = document.getElementById('frases-curso').value;
+    var areas = new Set();
+    if (curso) {
+        (materiasPorCurso[curso] || []).forEach(function(m) { areas.add(m); });
+        (frasesConfig[curso] ? Object.keys(frasesConfig[curso]) : []).forEach(function(a) { areas.add(a); });
+    } else {
+        ['Ciencias Sociales, Políticas y Económicas',
+         'Lenguajes y Producción Cultural',
+         'Ciencias Naturales',
+         'Matemática e Informática',
+         'Educación Física Integral',
+         'Educación Sexual Integral',
+         'Interárea Tecnología'].forEach(function(a) { areas.add(a); });
+        Object.values(frasesConfig).forEach(function(porAnio) {
+            Object.keys(porAnio).forEach(function(a) { areas.add(a); });
+        });
+    }
     return [...areas].sort();
 }
 
@@ -1685,17 +1747,17 @@ document.addEventListener('click', function(e) {
 });
 
 async function cargarFrasesAnioArea() {
-    const anio = document.getElementById('frases-anio').value;
-    const area = document.getElementById('frases-area').value.trim();
+    var anio = document.getElementById('frases-anio').value;
+    var curso = document.getElementById('frases-curso').value;
+    var area = document.getElementById('frases-area').value.trim();
     if (!anio || !area) { document.getElementById('msg-frases').textContent = 'Seleccione año y área'; return; }
-    
-    // Buscar con clave normalizada (mayúscula sin acentos)
-    const areaNorm = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const keys = Object.keys(frasesConfig[anio] || {});
-    const matchKey = keys.find(k =>
-        k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaNorm
-    );
-    const row = matchKey ? frasesConfig[anio][matchKey] : null;
+    var key = curso || anio;
+    var areaNorm = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    var keys = Object.keys(frasesConfig[key] || {});
+    var matchKey = keys.find(function(k) {
+        return k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaNorm;
+    });
+    var row = matchKey ? frasesConfig[key][matchKey] : null;
     if (!row) {
         document.getElementById('frases-1').value = '';
         document.getElementById('frases-2').value = '';
@@ -1711,22 +1773,22 @@ async function cargarFrasesAnioArea() {
 }
 
 async function guardarFrasesAnioArea() {
-    const anio = document.getElementById('frases-anio').value;
-    const area = document.getElementById('frases-area').value.trim();
+    var anio = document.getElementById('frases-anio').value;
+    var curso = document.getElementById('frases-curso').value;
+    var area = document.getElementById('frases-area').value.trim();
     if (!anio || !area) { document.getElementById('msg-frases').textContent = 'Seleccione año y área'; return; }
-    
-    const datos = {
-        anio: anio,
+    var key = curso || anio;
+    var datos = {
+        anio: key,
         area: area,
         frases: {
-            1: document.getElementById('frases-1').value.split('*').map(s => s.trim()).filter(Boolean),
-            2: document.getElementById('frases-2').value.split('*').map(s => s.trim()).filter(Boolean),
-            3: document.getElementById('frases-3').value.split('*').map(s => s.trim()).filter(Boolean)
+            1: document.getElementById('frases-1').value.split('*').map(function(s) { return s.trim(); }).filter(Boolean),
+            2: document.getElementById('frases-2').value.split('*').map(function(s) { return s.trim(); }).filter(Boolean),
+            3: document.getElementById('frases-3').value.split('*').map(function(s) { return s.trim(); }).filter(Boolean)
         }
     };
-    
     try {
-        const resp = await fetch(URL_WEB_APP, {
+        var resp = await fetch(URL_WEB_APP, {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1736,18 +1798,18 @@ async function guardarFrasesAnioArea() {
                 datos: datos
             })
         });
-        const res = await resp.json();
+        var res = await resp.json();
         if (res.success) {
-            frasesConfig[anio] = frasesConfig[anio] || {};
-            const areaKey = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            const keys = Object.keys(frasesConfig[anio]);
-            const existingKey = keys.find(k =>
-                k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaKey
-            );
+            if (!frasesConfig[key]) frasesConfig[key] = {};
+            var areaKey = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            var keys = Object.keys(frasesConfig[key]);
+            var existingKey = keys.find(function(k) {
+                return k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === areaKey;
+            });
             if (existingKey && existingKey !== areaKey) {
-                delete frasesConfig[anio][existingKey];
+                delete frasesConfig[key][existingKey];
             }
-            frasesConfig[anio][areaKey] = datos.frases;
+            frasesConfig[key][areaKey] = datos.frases;
             document.getElementById('msg-frases').textContent = res.mensaje || 'Guardado correctamente';
             document.getElementById('msg-frases').style.color = 'green';
         } else {
@@ -2236,6 +2298,15 @@ async function cargarListaAlumnosGestion() {
         const resultado = await resp.json();
         if (resultado.success) {
             alumnosDesdeSheets = resultado.alumnos || [];
+            // Re-poblar baseDeDatosAlumnos para que las otras secciones (calificaciones, libros) tengan datos actualizados
+            var nuevo = {};
+            (resultado.alumnos || []).forEach(function(a) {
+                if (!nuevo[a.turno]) nuevo[a.turno] = {};
+                if (!nuevo[a.turno][a.curso]) nuevo[a.turno][a.curso] = [];
+                nuevo[a.turno][a.curso].push({ dni: a.dni, nombre: a.nombre });
+            });
+            Object.keys(baseDeDatosAlumnos).forEach(function(t) { delete baseDeDatosAlumnos[t]; });
+            Object.assign(baseDeDatosAlumnos, nuevo);
         } else {
             console.warn('obtenerAlumnos error:', resultado.error);
             alumnosDesdeSheets = [];
