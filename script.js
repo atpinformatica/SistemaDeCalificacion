@@ -2576,10 +2576,13 @@ function renderizarTablaAlumnos() {
     let dniEnSheets = new Set(alumnosDesdeSheets.map(a => String(a.dni).trim()));
     let alumnos = [...alumnosDesdeSheets.map(a => ({ ...a, esRecursante: false, materia: '' }))];
 
+    function normalizarCurso(c) { return c.trim().toUpperCase().replace(/\s+/g, ''); }
+    var cursosNorm = cursosPermitidos.map(normalizarCurso);
+
     Object.keys(baseDeDatosAlumnos).forEach(turno => {
         Object.keys(baseDeDatosAlumnos[turno]).forEach(curso => {
             if (esPreceptorOjefe) {
-                if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
+                if (!cursosNorm.includes(normalizarCurso(curso))) return;
                 if (turnosList.length > 0 && turnosList.indexOf(turno.trim().toUpperCase()) === -1) return;
             }
             baseDeDatosAlumnos[turno][curso].forEach((alumno, idx) => {
@@ -2594,7 +2597,7 @@ function renderizarTablaAlumnos() {
         Object.keys(recursantesAgrupados[curso]).forEach(dni => {
             const r = recursantesAgrupados[curso][dni];
             if (esPreceptorOjefe) {
-                if (!cursosPermitidos.includes(curso.trim().toUpperCase())) return;
+                if (!cursosNorm.includes(normalizarCurso(curso))) return;
                 if (turnosList.length > 0 && turnosList.indexOf((r.turno || '').trim().toUpperCase()) === -1) return;
             }
             alumnos.push({ nombre: r.nombre, dni, turno: r.turno, curso, esRecursante: true, materia: r.materias.join(', ') });
@@ -2620,7 +2623,7 @@ function renderizarTablaAlumnos() {
     );
 
     if (alumnos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
         return;
     }
 
@@ -2631,6 +2634,7 @@ function renderizarTablaAlumnos() {
                 ${a.nombre}
                 ${a.esRecursante ? '<span style="margin-left:6px;background:#17a2b8;color:white;border-radius:4px;padding:1px 6px;font-size:0.7rem;">Recursante</span>' : ''}
             </td>
+            <td style="text-align:center;font-weight:bold;">${a.dni}</td>
             <td>${a.curso}</td>
             <td>${a.turno}</td>
             <td style="font-size:0.82rem;color:#555;">${a.esRecursante ? a.materia : '-'}</td>
