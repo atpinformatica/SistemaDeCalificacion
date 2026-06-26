@@ -2601,12 +2601,16 @@ function renderizarTablaAlumnos() {
         });
     });
 
-    alumnos.sort(function(a, b) {
-        var na = parseInt(String(a.dni).trim());
-        var nb = parseInt(String(b.dni).trim());
-        if (!isNaN(na) && !isNaN(nb)) return na - nb;
-        return String(a.dni).localeCompare(String(b.dni));
-    });
+    try {
+        alumnos.sort(function(a, b) {
+            var na = parseInt(String(a.dni).trim());
+            var nb = parseInt(String(b.dni).trim());
+            if (!isNaN(na) && !isNaN(nb)) return na - nb;
+            return 0;
+        });
+    } catch(e) {
+        console.warn('Error al ordenar alumnos en tabla:', e);
+    }
 
     if (turnoFiltro) alumnos = alumnos.filter(a => a.turno === turnoFiltro);
     if (cursoFiltro) alumnos = alumnos.filter(a => a.curso === cursoFiltro);
@@ -2793,8 +2797,9 @@ async function confirmarGuardarAlumno() {
             cerrarModal('modal-agregar-alumno');
             if (modo === 'editar' && dniOriginal) {
                 eliminarDeBaseDatos(dniOriginal);
+            } else if (modo === 'agregar') {
+                eliminarDeBaseDatos(dni);
             }
-            eliminarDeBaseDatos(dni);
             await cargarListaAlumnosGestion();
         } else {
             alert('Error: ' + resultado.error);
