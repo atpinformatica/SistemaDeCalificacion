@@ -2615,6 +2615,15 @@ function renderizarTablaAlumnos() {
         console.warn('Error al ordenar alumnos en tabla:', e);
     }
 
+    // Eliminar duplicados por DNI (la primera ocurrencia = sheets, es la autoritaria)
+    var seenDni = new Set();
+    alumnos = alumnos.filter(function(a) {
+        var key = String(a.dni).trim();
+        if (seenDni.has(key)) return false;
+        seenDni.add(key);
+        return true;
+    });
+
     if (turnoFiltro) alumnos = alumnos.filter(a => a.turno === turnoFiltro);
     if (cursoFiltro) alumnos = alumnos.filter(a => a.curso === cursoFiltro);
     if (busqueda) alumnos = alumnos.filter(a =>
