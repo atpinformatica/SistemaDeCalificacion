@@ -2601,6 +2601,13 @@ function renderizarTablaAlumnos() {
         });
     });
 
+    alumnos.sort(function(a, b) {
+        var na = parseInt(String(a.dni).trim());
+        var nb = parseInt(String(b.dni).trim());
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return String(a.dni).localeCompare(String(b.dni));
+    });
+
     if (turnoFiltro) alumnos = alumnos.filter(a => a.turno === turnoFiltro);
     if (cursoFiltro) alumnos = alumnos.filter(a => a.curso === cursoFiltro);
     if (busqueda) alumnos = alumnos.filter(a =>
