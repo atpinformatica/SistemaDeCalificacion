@@ -2579,19 +2579,21 @@ function renderizarTablaAlumnos() {
     function normalizarCurso(c) { return c.trim().toUpperCase().replace(/\s+/g, ''); }
     var cursosNorm = cursosPermitidos.map(normalizarCurso);
 
-    Object.keys(baseDeDatosAlumnos).forEach(turno => {
-        Object.keys(baseDeDatosAlumnos[turno]).forEach(curso => {
-            if (esPreceptorOjefe) {
-                if (!cursosNorm.includes(normalizarCurso(curso))) return;
-                if (turnosList.length > 0 && turnosList.indexOf(turno.trim().toUpperCase()) === -1) return;
-            }
-            baseDeDatosAlumnos[turno][curso].forEach((alumno, idx) => {
-                if (!dniEnSheets.has(String(alumno.dni).trim())) {
-                    alumnos.push({ ...alumno, turno, curso, index: idx, esRecursante: false, materia: '' });
+    if (alumnosDesdeSheets.length > 0) {
+        Object.keys(baseDeDatosAlumnos).forEach(turno => {
+            Object.keys(baseDeDatosAlumnos[turno]).forEach(curso => {
+                if (esPreceptorOjefe) {
+                    if (!cursosNorm.includes(normalizarCurso(curso))) return;
+                    if (turnosList.length > 0 && turnosList.indexOf(turno.trim().toUpperCase()) === -1) return;
                 }
+                baseDeDatosAlumnos[turno][curso].forEach((alumno, idx) => {
+                    if (!dniEnSheets.has(String(alumno.dni).trim())) {
+                        alumnos.push({ ...alumno, turno, curso, index: idx, esRecursante: false, materia: '' });
+                    }
+                });
             });
         });
-    });
+    }
 
     Object.keys(recursantesAgrupados).forEach(curso => {
         Object.keys(recursantesAgrupados[curso]).forEach(dni => {
