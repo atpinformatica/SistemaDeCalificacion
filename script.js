@@ -2314,7 +2314,7 @@ function renderizarTablaAlumnos() {
     // Eliminar duplicados por DNI (la primera ocurrencia = sheets, es la autoritaria)
     var seenDni = new Set();
     alumnos = alumnos.filter(function(a) {
-        var key = String(a.dni).trim();
+        var key = String(a.dni).trim() + '|' + String(a.curso).trim().toUpperCase();
         if (seenDni.has(key)) return false;
         seenDni.add(key);
         return true;
