@@ -373,6 +373,9 @@
                 <button class="btn-add-user" onclick="mostrarModalAgregarRecursante()" style="background:#17a2b8; margin-left:10px;">
                     <i class="fas fa-user-graduate"></i> Agregar Recursante
                 </button>
+                <button class="btn-add-user" onclick="mostrarModalCargaMasiva()" style="background:#28a745; margin-left:10px;">
+                    <i class="fas fa-users"></i> Carga Masiva
+                </button>
                 <button class="btn-add-user" onclick="mostrarModalInforme()" style="background:#7b3f9e; margin-left:10px;" id="btn-modal-informe">
                     <i class="fas fa-file-alt"></i> Generar Informes
                 </button>
@@ -599,6 +602,62 @@
             <div class="modal-footer">
                 <button class="btn-cancel" onclick="cerrarModal('modal-agregar-alumno')">Cancelar</button>
                 <button class="btn-confirm" onclick="confirmarGuardarAlumno()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MODAL CARGA MASIVA ===================== -->
+    <div id="modal-carga-masiva" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-users"></i> Carga Masiva de Alumnos</h3>
+                <button class="modal-close" onclick="cerrarModal('modal-carga-masiva')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Curso</label>
+                    <select id="cm-curso">
+                        <option value="">Seleccione Curso</option>
+                        <option value="1 A">1 A</option>
+                        <option value="1 B">1 B</option>
+                        <option value="1 C">1 C</option>
+                        <option value="1 D">1 D</option>
+                        <option value="1 E">1 E</option>
+                        <option value="2 A">2 A</option>
+                        <option value="2 B">2 B</option>
+                        <option value="2 C">2 C</option>
+                        <option value="2 D">2 D</option>
+                        <option value="3 A">3 A</option>
+                        <option value="3 B">3 B</option>
+                        <option value="3 C">3 C</option>
+                        <option value="4 A">4 A</option>
+                        <option value="4 B">4 B</option>
+                        <option value="4 C">4 C</option>
+                        <option value="5 A">5 A</option>
+                        <option value="5 B">5 B</option>
+                        <option value="5 C">5 C</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Turno</label>
+                    <select id="cm-turno">
+                        <option value="">Seleccione Turno</option>
+                        <option value="MAÑANA">MAÑANA</option>
+                        <option value="TARDE">TARDE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nro. Orden inicial <small>(opcional, por defecto continúa desde el último)</small></label>
+                    <input type="number" id="cm-dni-inicio" placeholder="Ej: 1" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Apellido y Nombre de cada alumno <small>(uno por línea)</small></label>
+                    <textarea id="cm-lista-nombres" rows="12" placeholder="Perez, Juan&#10;Garcia, Maria&#10;Lopez, Carlos&#10;..." style="width:100%;resize:vertical;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="cerrarModal('modal-carga-masiva')">Cancelar</button>
+                <button class="btn-confirm" onclick="confirmarCargaMasiva()">Cargar Alumnos</button>
             </div>
         </div>
     </div>
