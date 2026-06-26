@@ -353,7 +353,7 @@ let frasesConfig = {};
 let fechasLimite = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbyhoBBLl995zFUqmSe7Yc7B9_ICWOr4OGKn3vwf0kjpXUDOXNZxuhb2UXLeYlu4onz6NQ/exec';
 
 const nombresRoles = {
   admin: 'Administrador',
@@ -2554,6 +2554,14 @@ async function cargarListaAlumnosGestion() {
     renderizarTablaAlumnos();
 }
 
+function eliminarDeBaseDatos(dni) {
+    Object.keys(baseDeDatosAlumnos).forEach(t => {
+        Object.keys(baseDeDatosAlumnos[t] || {}).forEach(c => {
+            baseDeDatosAlumnos[t][c] = (baseDeDatosAlumnos[t][c] || []).filter(a => String(a.dni).trim() !== String(dni).trim());
+        });
+    });
+}
+
 function renderizarTablaAlumnos() {
     const tbody = document.getElementById('tbody-alumnos-gestion');
     const busqueda = document.getElementById('buscar-alumno').value.toLowerCase();
@@ -2776,6 +2784,10 @@ async function confirmarGuardarAlumno() {
         if (resultado.success) {
             alert(modo === 'editar' ? 'Alumno actualizado exitosamente' : 'Alumno agregado exitosamente');
             cerrarModal('modal-agregar-alumno');
+            if (modo === 'editar' && dniOriginal) {
+                eliminarDeBaseDatos(dniOriginal);
+            }
+            eliminarDeBaseDatos(dni);
             await cargarListaAlumnosGestion();
         } else {
             alert('Error: ' + resultado.error);
@@ -2807,6 +2819,7 @@ async function eliminarAlumno(turno, curso, dni) {
         
         if (resultado.success) {
             alert('Alumno eliminado exitosamente');
+            eliminarDeBaseDatos(dni);
             await cargarListaAlumnosGestion();
         } else {
             alert('Error: ' + resultado.error);
