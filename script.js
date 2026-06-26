@@ -2623,18 +2623,17 @@ function renderizarTablaAlumnos() {
     );
 
     if (alumnos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
         return;
     }
 
     tbody.innerHTML = alumnos.map((a, i) => `
         <tr style="${a.esRecursante ? 'background:#f0faff;' : ''}">
-            <td>${i + 1}</td>
+            <td style="text-align:center;font-weight:bold;">${a.dni}</td>
             <td style="text-align:left;">
                 ${a.nombre}
                 ${a.esRecursante ? '<span style="margin-left:6px;background:#17a2b8;color:white;border-radius:4px;padding:1px 6px;font-size:0.7rem;">Recursante</span>' : ''}
             </td>
-            <td style="text-align:center;font-weight:bold;">${a.dni}</td>
             <td>${a.curso}</td>
             <td>${a.turno}</td>
             <td style="font-size:0.82rem;color:#555;">${a.esRecursante ? a.materia : '-'}</td>
