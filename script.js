@@ -1044,9 +1044,11 @@ async function cargarAlumnos() {
             html += `<td><select class="nota-input select-nota" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'nota', this.value)">
                         <option value="">-</option>`;
             if (esCuatrimestre) {
-                for (let i = 1; i <= 10; i++) {
+                for (let i = 4; i <= 10; i++) {
                     html += `<option value="${i}" ${n == i ? 'selected' : ''}>${i}</option>`;
                 }
+                html += `<option value="Ausente" ${n === 'Ausente' ? 'selected' : ''}>Ausente</option>`;
+                html += `<option value="Sin califica" ${n === 'Sin califica' ? 'selected' : ''}>Sin califica</option>`;
             } else {
                 escalaConceptos.forEach(e => {
                     html += `<option value="${e}" ${n == e ? 'selected' : ''}>${e}</option>`;
@@ -2299,7 +2301,7 @@ async function generarInformes() {
 
     btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generando PDF...`;
 
-    const es4o5 = anioDesde(curso) >= 4;
+    const es5 = anioDesde(curso) >= 5;
     const esBimestre = periodo.includes('Bimestre');
     const preceptorAuto = data.preceptor || '';
     const preceptorFinal = preceptor || preceptorAuto;
@@ -2307,7 +2309,7 @@ async function generarInformes() {
     const paginasHTML = data.alumnos.map(alumno => {
       const alumnoKey = Object.keys(data.notasMap).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
       const notas = data.notasMap[alumnoKey] || {};
-      const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+      const usarFormato45 = es5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
       // Si es recursante, mostrar solo las materias que recursa
       const materiasRec = data.recursantesMap?.[alumno.dni];
       const materiasOverride = materiasRec?.length ? materiasRec : undefined;
@@ -2377,7 +2379,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
       const key = Object.keys(notas).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
       const n   = notas[key] || {};
       const docKey = Object.keys(docenteMap).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
-      const doc = docenteMap[docKey] || '';
+      const doc = docenteMap[docKey] || 'Sin Docente';
       const obs1 = n.obs1 || n.sel_1 || '';
       const obs2 = n.obs2 || n.sel_2 || '';
       const obs3 = n.obs3 || n.sel_3 || '';
@@ -2426,7 +2428,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
           const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           return kn === matUpper || kn === areaUpper;
         }) || mat;
-        const doc = docenteMap[docKey] || '';
+        const doc = docenteMap[docKey] || 'Sin Docente';
         if (idx === 0) {
           filas += `<tr>
             <td class="td-area-nombre" rowspan="${grupo.materias.length}">${area}</td>
@@ -2657,23 +2659,20 @@ function mostrarModalAgregarAlumno() {
         cursosPermitidos.forEach(function(c) {
             selectCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
         });
-        if (cursosPermitidos.length === 1) {
-            selectCurso.value = cursosPermitidos[0];
-            selectCurso.disabled = true;
+        selectCurso.disabled = cursosPermitidos.length === 1;
+        // populate turno dropdown
+        if (turnosList.length > 0) {
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+            turnosList.forEach(function(t) {
+                selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+            });
+            selectTurno.disabled = turnosList.length === 1;
         } else {
-            selectCurso.disabled = false;
-        }
-        // populate turno dropdown with assigned turnos
-        selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
-        turnosList.forEach(function(t) {
-            selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
-        });
-        if (turnosList.length === 1) {
-            selectTurno.value = turnosList[0];
-            selectTurno.disabled = true;
-        } else {
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option><option value="MAÑANA">MAÑANA</option><option value="TARDE">TARDE</option>';
             selectTurno.disabled = false;
         }
+        selectCurso.value = cursosPermitidos.length === 1 ? cursosPermitidos[0] : '';
+        selectTurno.value = turnosList.length === 1 ? turnosList[0] : '';
     } else {
         selectCurso.innerHTML = '<option value="">Seleccione Curso</option><option value="1 A">1 A</option><option value="1 B">1 B</option><option value="1 C">1 C</option><option value="1 D">1 D</option><option value="1 E">1 E</option><option value="2 A">2 A</option><option value="2 B">2 B</option><option value="2 C">2 C</option><option value="2 D">2 D</option><option value="3 A">3 A</option><option value="3 B">3 B</option><option value="3 C">3 C</option><option value="4 A">4 A</option><option value="4 B">4 B</option><option value="4 C">4 C</option><option value="5 A">5 A</option><option value="5 B">5 B</option><option value="5 C">5 C</option>';
         selectCurso.value = '';
@@ -2722,17 +2721,19 @@ function mostrarModalEditarAlumno(turno, curso, dni) {
             selectCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
         });
         selectCurso.value = alumno.curso || curso;
-        if (cursosPermitidos.length === 1) {
-            selectCurso.disabled = true;
+        selectCurso.disabled = cursosPermitidos.length === 1;
+        if (turnosList.length > 0) {
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+            turnosList.forEach(function(t) {
+                selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+            });
+            selectTurno.value = alumno.turno || turno;
+            selectTurno.disabled = turnosList.length === 1;
         } else {
-            selectCurso.disabled = false;
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option><option value="MAÑANA">MAÑANA</option><option value="TARDE">TARDE</option>';
+            selectTurno.value = alumno.turno || turno;
+            selectTurno.disabled = false;
         }
-        selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
-        turnosList.forEach(function(t) {
-            selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
-        });
-        selectTurno.value = alumno.turno || turno;
-        selectTurno.disabled = turnosList.length === 1;
     } else {
         selectCurso.innerHTML = '<option value="">Seleccione Curso</option><option value="1 A">1 A</option><option value="1 B">1 B</option><option value="1 C">1 C</option><option value="1 D">1 D</option><option value="1 E">1 E</option><option value="2 A">2 A</option><option value="2 B">2 B</option><option value="2 C">2 C</option><option value="2 D">2 D</option><option value="3 A">3 A</option><option value="3 B">3 B</option><option value="3 C">3 C</option><option value="4 A">4 A</option><option value="4 B">4 B</option><option value="4 C">4 C</option><option value="5 A">5 A</option><option value="5 B">5 B</option><option value="5 C">5 C</option>';
         selectCurso.value = alumno.curso || curso;
@@ -3270,7 +3271,7 @@ function verificarDatosCompletos() {
         let falta = [];
         if (esCuatrimestre) {
             const notaNum = parseInt(d.nota);
-            if (!d.nota || d.nota.trim() === '' || isNaN(notaNum) || notaNum < 1 || notaNum > 10) {
+            if (!d.nota || d.nota.trim() === '' || (isNaN(notaNum) && d.nota !== 'Ausente' && d.nota !== 'Sin califica') || notaNum < 4 || notaNum > 10) {
                 falta.push('Nota');
             }
         } else {
@@ -3737,7 +3738,7 @@ function obtenerNotasAlumnoParaLibro(alumno, curso, materias, periodo) {
     return resultado;
 }
 
-function generarHTMLLibroCurso(curso, usuarios, periodo = '1_Bimestre', anio = '2025') {
+function generarHTMLLibroCurso(curso, usuarios, periodo = '1_Bimestre', anio = '2026') {
     const alumnos = [];
     Object.keys(baseDeDatosAlumnos).forEach(turno => {
         if (baseDeDatosAlumnos[turno][curso]) {
@@ -4031,13 +4032,13 @@ async function descargarLibroPorCurso() {
         return;
     }
 
-    const es4o5 = anioDesde(curso) >= 4;
+    const es5 = anioDesde(curso) >= 5;
     const esBimestre = periodo.includes('Bimestre');
 
     const paginasHTML = todosAlumnos.map(alumno => {
         const alumnoKey = Object.keys(todasNotas).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
         const notas = todasNotas[alumnoKey] || {};
-        const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+        const usarFormato45 = es5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
         const materiasRec = todosRecursantes?.[alumno.dni];
         const materiasOverride = materiasRec?.length ? materiasRec : undefined;
         return usarFormato45
@@ -4115,13 +4116,13 @@ async function descargarLibroTodosCursos() {
 
         if (!todosAlumnos.length) continue;
 
-        const es4o5 = anioDesde(curso) >= 4;
+        const es5 = anioDesde(curso) >= 5;
         const esBimestre = periodo.includes('Bimestre');
 
         todosAlumnos.forEach(alumno => {
             const alumnoKey = Object.keys(todasNotas).find(k => normalizarNombre(k) === normalizarNombre(alumno.nombre)) || alumno.nombre;
             const notas = todasNotas[alumnoKey] || {};
-            const usarFormato45 = es4o5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
+            const usarFormato45 = es5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && esBimestre);
             const materiasRec = todosRecursantes?.[alumno.dni];
             const materiasOverride = materiasRec?.length ? materiasRec : undefined;
             const pagina = usarFormato45
@@ -4172,7 +4173,7 @@ function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docent
       const key = Object.keys(notas).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
       const n   = notas[key] || {};
       const docKey = Object.keys(docenteMap).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
-      const doc = docenteMap[docKey] || '';
+      const doc = docenteMap[docKey] || 'Sin Docente';
       const nota = (n.nota || '').toString().trim();
       filas += `<tr>
         <td class="td-mat">${mat}</td>
