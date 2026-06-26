@@ -2411,6 +2411,46 @@ function mostrarModalAgregarAlumno() {
     document.getElementById('modal-agregar-alumno').style.display = 'flex';
 }
 
+function mostrarModalCargaMasiva() {
+    const selectCurso = document.getElementById('cm-curso');
+    const selectTurno = document.getElementById('cm-turno');
+    document.getElementById('cm-lista-nombres').value = '';
+    document.getElementById('cm-dni-inicio').value = '';
+
+    const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
+    if (esPreceptorOjefe) {
+        const cursosPermitidos = (sesionActual.cursos_permitidos || []);
+        const turnoAsignado = (sesionActual.turno || '').trim();
+        var turnosList = turnoAsignado ? turnoAsignado.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+
+        selectCurso.innerHTML = '<option value="">Seleccione Curso</option>';
+        cursosPermitidos.forEach(function(c) {
+            selectCurso.innerHTML += '<option value="' + c + '">' + c + '</option>';
+        });
+        selectCurso.disabled = cursosPermitidos.length === 1;
+
+        if (turnosList.length > 0) {
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option>';
+            turnosList.forEach(function(t) {
+                selectTurno.innerHTML += '<option value="' + t + '">' + t + '</option>';
+            });
+            selectTurno.disabled = turnosList.length === 1;
+        } else {
+            selectTurno.innerHTML = '<option value="">Seleccione Turno</option><option value="MAÑANA">MAÑANA</option><option value="TARDE">TARDE</option>';
+            selectTurno.disabled = false;
+        }
+        selectCurso.value = cursosPermitidos.length === 1 ? cursosPermitidos[0] : '';
+        selectTurno.value = turnosList.length === 1 ? turnosList[0] : '';
+    } else {
+        selectCurso.value = '';
+        selectCurso.disabled = false;
+        selectTurno.value = '';
+        selectTurno.disabled = false;
+    }
+
+    document.getElementById('modal-carga-masiva').style.display = 'flex';
+}
+
 function mostrarModalEditarAlumno(turno, curso, dni) {
     const dniStr = String(dni).trim();
 
@@ -2515,6 +2555,52 @@ async function confirmarGuardarAlumno() {
     } catch (err) {
         console.error(err);
         alert('Error al guardar alumno');
+    }
+}
+
+async function confirmarCargaMasiva() {
+    const curso = document.getElementById('cm-curso').value;
+    const turno = document.getElementById('cm-turno').value;
+    const dniInicio = document.getElementById('cm-dni-inicio').value.trim();
+    const texto = document.getElementById('cm-lista-nombres').value.trim();
+
+    if (!curso || !turno) {
+        alert('Seleccione curso y turno');
+        return;
+    }
+
+    const nombres = texto.split('\n').map(function(n) { return n.trim(); }).filter(Boolean);
+    if (nombres.length === 0) {
+        alert('Ingrese al menos un nombre');
+        return;
+    }
+
+    if (!confirm('¿Agregar ' + nombres.length + ' alumno(s) al curso ' + curso + ' (' + turno + ')?')) return;
+
+    try {
+        const resp = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'agregarAlumnosMasivo',
+                correo: sesionActual.correo,
+                datos: { curso: curso, turno: turno, nombres: nombres, dniInicio: dniInicio }
+            })
+        });
+
+        const resultado = await resp.json();
+
+        if (resultado.success) {
+            alert('Carga exitosa\n\n' + resultado.mensaje);
+            cerrarModal('modal-carga-masiva');
+            await cargarListaAlumnosGestion();
+        } else {
+            alert('Error: ' + resultado.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error al realizar carga masiva');
     }
 }
 
