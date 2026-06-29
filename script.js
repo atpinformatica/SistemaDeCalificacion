@@ -1999,6 +1999,15 @@ const AREAS_POR_CURSO = {
 ["1 B","1 C","1 D","1 E"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["1 A"]);
 ["2 A","2 C","2 D"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["2 B"]);
 ["3 B","3 C"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["3 A"]);
+["4 A","4 B","4 C"].forEach(c => AREAS_POR_CURSO[c] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","SOCIEDADES, POLITICAS Y SUBJETIVIDADES","ESTADOS, POLITICAS Y LEGISLACIONES","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","FILOSOFIA DE LAS CIENCIAS","GEOPOLITICA","ESTUDIOS SOCIALES Y CULTURALES","PROYECTOS SOCIOCOMUNITARIOS"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","GENEALOGIAS DE LAS ARTES Y LAS ESTETICA"] },
+  { area: "Ciencias Naturales",                        materias: ["CS. BIOLOGICAS","QUIMICA","FISICA"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA","SISTEMA DE INFORMACION CONTABLE"] },
+  { area: "Educación Física Integral",                 materias: ["EDUCACION FISICA INTEGRAL"] },
+  { area: "Comunicación y Medios",                     materias: ["COMUNICACION, DISCURSO Y PRODUCCION DE SENTIDOS"] },
+  { area: "Integración Curricular",                    materias: ["INTEGRACION CURRICULAR: ANALISIS Y EVALUACION DE PROYECTOS"] }
+]);
 
 const MATERIAS_4_5 = {
   "4 A": ["HISTORIA","GEOGRAFIA","SOCIEDADES, POLITICAS Y SUBJETIVIDADES","LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL","MATEMATICA","INFORMATICA","CS. BIOLOGICAS","QUIMICA","FISICA","ESTADOS, POLITICAS Y LEGISLACIONES","SISTEMA DE INFORMACION CONTABLE","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACION CURRICULAR: ANALISIS Y EVALUACION DE PROYECTOS"],
@@ -2100,6 +2109,339 @@ function abrirInformeEnPestana(paginasHTML) {
   }
 }
 
+function _keyNotas(notas, materia) {
+  const norm = s => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const mNorm = norm(materia);
+  return Object.keys(notas).find(k => norm(k) === mNorm) || materia;
+}
+
+async function generarExcelInformes() {
+  const curso     = document.getElementById('informe-curso').value;
+  const periodo   = document.getElementById('informe-periodo').value;
+  const turno     = document.getElementById('informe-turno').value;
+  const preceptor = document.getElementById('informe-preceptor').value.trim();
+
+  if (!curso || !periodo || !turno) { alert('Completá Curso, Turno y Período.'); return; }
+
+  const btn = document.getElementById('btn-generar-excel');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+
+  try {
+    const url = `${URL_WEB_APP}?action=obtenerInformeCurso`
+      + `&correo=${encodeURIComponent(sesionActual.correo)}`
+      + `&curso=${encodeURIComponent(curso)}`
+      + `&turno=${encodeURIComponent(turno)}`
+      + `&periodo=${encodeURIComponent(periodo)}`;
+
+    const resp = await fetch(url, { method:'GET', mode:'cors' });
+    const data = await resp.json();
+
+    if (!data.success) { alert('Error: ' + data.error); return; }
+    if (!data.alumnos?.length) { alert('No se encontraron alumnos para este curso.'); return; }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Excel...';
+
+    const preceptorFinal = preceptor || data.preceptor || '';
+
+    const areas = AREAS_POR_CURSO[curso] || [];
+    const areaMap = {};
+    areas.forEach(g => g.materias.forEach(m => { areaMap[m] = g.area; }));
+
+    let todasMaterias = [];
+    if (AREAS_POR_CURSO[curso]) {
+      AREAS_POR_CURSO[curso].forEach(g => { todasMaterias = todasMaterias.concat(g.materias); });
+    } else if (MATERIAS_4_5[curso]) {
+      todasMaterias = MATERIAS_4_5[curso];
+    }
+
+    const anioActual = new Date().getFullYear();
+    const wb = XLSX.utils.book_new();
+    const labelPer = periodo.includes('Bimestre') ? 'Bimestral' : 'Cuatrimestral';
+    const es5 = anioDesde(curso) >= 5;
+    const usarFormato45 = es5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && periodo.includes('Bimestre'));
+
+    data.alumnos.forEach(alumno => {
+      const alumnoKey = _keyNotas(data.notasMap, alumno.nombre);
+      const notas = data.notasMap[alumnoKey] || {};
+      const recursantes = data.recursantesMap?.[alumno.dni];
+      const materias = recursantes?.length ? recursantes : todasMaterias;
+
+      const sd = [];
+
+      if (usarFormato45) {
+        // ── FORMATO 4/5: doble fila de encabezados (10 columnas) ──
+        const lastCol45 = 9;
+        sd[0] = [`CPEM N° 32 — Informe ${labelPer} ${anioActual}`, '', '', '', '', '', '', '', '', ''];
+        sd[1] = [periodo.toUpperCase(), '', '', '', '', '', '', '', '', ''];
+        sd[2] = [`Estudiante: ${alumno.nombre}`, '', '', `Curso: ${curso}`, '', '', `Preceptor/a: ${preceptorFinal}`, '', '', ''];
+        sd[3] = [];
+        sd[4] = ['Espacio Curricular','Docentes','Apropiación de conocimientos y saberes','','','Responsabilidad en su proceso de aprendizaje','','Cumplimiento de los AEC','Nota final','Observaciones'];
+        sd[5] = ['','','Interpreta','Relaciona','Aplica','Participación','Autonomía','','',''];
+
+        materias.forEach(mat => {
+          const key = _keyNotas(notas, mat);
+          const n = notas[key] || {};
+          const docKey = _keyNotas(data.docenteMap, mat);
+          const doc = data.docenteMap?.[docKey] || '';
+          const obsP = n.obs4 || n.observacion || '';
+          const obsC = [n.obs1, obsP].filter(o => o && o !== '-').join(' · ');
+          sd.push([
+            mat, doc,
+            n.interpreta || '-', n.relaciona || '-', n.aplica || '-',
+            n.participacion || '-', n.autonomia || '-',
+            n.cumplimiento_aec || '-', n.nota || '', obsC
+          ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(sd);
+        const lastRow = sd.length - 1;
+        const lastCol = lastCol45;
+
+        const CP = '6D3B8E', CLA = 'C9A8DC', CLM = 'EFE8F5', CLN = 'DDD0EC';
+        const CLC = 'F3ECFA', CB = 'B39CC8', CBCO = 'FFFFFF', CTA = '3D1F5A';
+        const bdr = {
+          top:{style:'thin',color:{rgb:CB}},bottom:{style:'thin',color:{rgb:CB}},
+          left:{style:'thin',color:{rgb:CB}},right:{style:'thin',color:{rgb:CB}}
+        };
+        const bdrNT = {bottom:bdr.bottom,left:bdr.left,right:bdr.right};
+
+        for (let r = 0; r <= lastRow; r++) {
+          for (let c = 0; c <= lastCol; c++) {
+            const a = XLSX.utils.encode_cell({r,c});
+            if (!ws[a]) ws[a] = {t:'z'};
+            const cel = ws[a];
+            if (!cel.s) cel.s = {};
+            cel.s.border = (r === lastRow) ? {...bdrNT} : {...bdr, top:{...bdr.top}, bottom:{...bdr.bottom}, left:{...bdr.left}, right:{...bdr.right}};
+            cel.s.alignment = {vertical:'center',wrapText:true};
+            if (r === 0) {
+              cel.s.font = {bold:true,sz:14,color:{rgb:CBCO}};
+              cel.s.fill = {fgColor:{rgb:CP}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else if (r === 1) {
+              cel.s.font = {bold:true,sz:11,color:{rgb:CTA}};
+              cel.s.fill = {fgColor:{rgb:CLC}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else if (r === 2) {
+              cel.s.fill = {fgColor:{rgb:CLC}};
+              cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
+            } else if (r === 3) {
+              cel.s.fill = {fgColor:{rgb:CLC}};
+            } else if (r === 4 || r === 5) {
+              cel.s.font = {bold:true,sz:8,color:{rgb:CBCO}};
+              cel.s.fill = {fgColor:{rgb:CP}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else {
+              if (c === 0) {
+                cel.s.font = {bold:true,sz:9,color:{rgb:CTA}};
+                cel.s.fill = {fgColor:{rgb:CLM}};
+              } else if (c === 8) {
+                cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
+                cel.s.fill = {fgColor:{rgb:CLN}};
+                cel.s.alignment = {horizontal:'center',vertical:'center'};
+              } else if (c >= 1 && c <= 7) {
+                cel.s.fill = {fgColor:{rgb:CLM}};
+                cel.s.font = {sz:8,color:{rgb:CTA}};
+                if (c >= 2) cel.s.alignment = {horizontal:'center',vertical:'center'};
+              } else {
+                cel.s.font = {sz:9};
+              }
+            }
+          }
+        }
+
+        ws['!merges'] = [
+          {s:{r:0,c:0},e:{r:0,c:lastCol}},
+          {s:{r:1,c:0},e:{r:1,c:lastCol}},
+          {s:{r:2,c:0},e:{r:2,c:2}},
+          {s:{r:2,c:3},e:{r:2,c:5}},
+          {s:{r:2,c:6},e:{r:2,c:lastCol}},
+          {s:{r:4,c:0},e:{r:5,c:0}},
+          {s:{r:4,c:1},e:{r:5,c:1}},
+          {s:{r:4,c:2},e:{r:4,c:4}},
+          {s:{r:4,c:5},e:{r:4,c:6}},
+          {s:{r:4,c:7},e:{r:5,c:7}},
+          {s:{r:4,c:8},e:{r:5,c:8}},
+          {s:{r:4,c:9},e:{r:5,c:9}}
+        ];
+        ws['!cols'] = [
+          {wch:35},{wch:20},{wch:12},{wch:12},{wch:12},
+          {wch:14},{wch:14},{wch:22},{wch:14},{wch:30}
+        ];
+        ws['!rows'] = [{hpt:32},{hpt:22},{hpt:22},{hpt:6},{hpt:22},{hpt:22}];
+
+        const sn = alumno.nombre.replace(/[^\w\sáéíóúÁÉÍÓÚñÑ,-]/g,'').substring(0,31) || `Alumno`;
+        XLSX.utils.book_append_sheet(wb, ws, sn);
+
+      } else {
+        // ── FORMATO 1/3/4 (Área | Espacio Curricular | Docentes | Informe Cualitativo | NOTA) ──
+        const lastCol13 = 4;
+        sd[0] = [`CPEM N° 32 — Informe ${labelPer} ${anioActual}`, '', '', '', ''];
+        sd[1] = [periodo.toUpperCase(), '', '', '', ''];
+        sd[2] = [`Estudiante: ${alumno.nombre}`, '', '', `Curso: ${curso}`, ''];
+        sd[3] = [];
+        sd[4] = ['Área','Espacio Curricular','Docentes','Informe Cualitativo','NOTA'];
+
+        materias.forEach(mat => {
+          const key = _keyNotas(notas, mat);
+          const n = notas[key] || {};
+          const docKey = _keyNotas(data.docenteMap, mat);
+          const doc = data.docenteMap?.[docKey] || '';
+          const obsP = n.obs4 || n.observacion || '';
+          const cualis = [n.obs1||n.sel_1||'', n.obs2||n.sel_2||'', n.obs3||n.sel_3||'', obsP].filter(o => o).join(' · ');
+          sd.push([areaMap[mat] || '', mat, doc, cualis, n.nota || '']);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(sd);
+        const lastRow = sd.length - 1;
+        const lastCol = lastCol13;
+
+        const CP = '6D3B8E', CLA = 'C9A8DC', CLM = 'EFE8F5', CLN = 'DDD0EC';
+        const CLC = 'F3ECFA', CB = 'B39CC8', CBCO = 'FFFFFF', CTA = '3D1F5A', CN = '222222';
+        const bdr = {
+          top:{style:'thin',color:{rgb:CB}},bottom:{style:'thin',color:{rgb:CB}},
+          left:{style:'thin',color:{rgb:CB}},right:{style:'thin',color:{rgb:CB}}
+        };
+        const bdrNT = {bottom:bdr.bottom,left:bdr.left,right:bdr.right};
+
+        for (let r = 0; r <= lastRow; r++) {
+          for (let c = 0; c <= lastCol; c++) {
+            const a = XLSX.utils.encode_cell({r,c});
+            if (!ws[a]) ws[a] = {t:'z'};
+            const cel = ws[a];
+            if (!cel.s) cel.s = {};
+            cel.s.border = (r === lastRow) ? {...bdrNT} : {...bdr, top:{...bdr.top}, bottom:{...bdr.bottom}, left:{...bdr.left}, right:{...bdr.right}};
+            cel.s.alignment = {vertical:'center',wrapText:true};
+            if (r === 0) {
+              cel.s.font = {bold:true,sz:14,color:{rgb:CBCO}};
+              cel.s.fill = {fgColor:{rgb:CP}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else if (r === 1) {
+              cel.s.font = {bold:true,sz:11,color:{rgb:CTA}};
+              cel.s.fill = {fgColor:{rgb:CLC}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else if (r === 2) {
+              cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
+              cel.s.fill = {fgColor:{rgb:CLC}};
+            } else if (r === 3) {
+              cel.s.fill = {fgColor:{rgb:CLC}};
+            } else if (r === 4) {
+              cel.s.font = {bold:true,sz:9,color:{rgb:CBCO}};
+              cel.s.fill = {fgColor:{rgb:CP}};
+              cel.s.alignment = {horizontal:'center',vertical:'center'};
+            } else {
+              if (c === 0) {
+                cel.s.font = {bold:true,sz:9,color:{rgb:CTA}};
+                cel.s.fill = {fgColor:{rgb:CLA}};
+                cel.s.alignment = {horizontal:'center',vertical:'center'};
+              } else if (c === 1 || c === 2) {
+                cel.s.fill = {fgColor:{rgb:CLM}};
+                cel.s.font = {sz:8};
+              } else if (c === 4) {
+                cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
+                cel.s.fill = {fgColor:{rgb:CLN}};
+                cel.s.alignment = {horizontal:'center',vertical:'center'};
+              } else {
+                cel.s.font = {sz:9,color:{rgb:CN}};
+              }
+            }
+          }
+        }
+
+        const merges = [
+          {s:{r:0,c:0},e:{r:0,c:lastCol}},
+          {s:{r:1,c:0},e:{r:1,c:lastCol}},
+          {s:{r:2,c:0},e:{r:2,c:2}},
+          {s:{r:2,c:3},e:{r:2,c:lastCol}}
+        ];
+        for (let i = 5; i <= lastRow; i++) {
+          const a = (sd[i]?.[0] || '').toString().trim();
+          if (a) {
+            let end = i;
+            for (let j = i + 1; j <= lastRow; j++) {
+              if ((sd[j]?.[0] || '').toString().trim()) break;
+              end = j;
+            }
+            if (end > i) merges.push({s:{r:i,c:0},e:{r:end,c:0}});
+            i = end;
+          }
+        }
+        ws['!merges'] = merges;
+        ws['!cols'] = [{wch:34},{wch:24},{wch:20},{wch:56},{wch:8}];
+        ws['!rows'] = [{hpt:32},{hpt:22},{hpt:22},{hpt:6},{hpt:22}];
+
+        const sn = alumno.nombre.replace(/[^\w\sáéíóúÁÉÍÓÚñÑ,-]/g,'').substring(0,31) || `Alumno`;
+        XLSX.utils.book_append_sheet(wb, ws, sn);
+      }
+    });
+
+    const fileName = `Informes_${labelPer}_${curso.replace(/\s+/g,'_')}_${anioActual}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    cerrarModalInforme();
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-file-excel"></i> Excel';
+  }
+}
+
+async function generarPlanillaInformes() {
+  const curso     = document.getElementById('informe-curso').value;
+  const periodo   = document.getElementById('informe-periodo').value;
+  const turno     = document.getElementById('informe-turno').value;
+  const preceptor = document.getElementById('informe-preceptor').value.trim();
+
+  if (!curso || !periodo || !turno) { alert('Completá Curso, Turno y Período.'); return; }
+
+  const btn = document.getElementById('btn-generar-planilla');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+
+  try {
+    const areas = AREAS_POR_CURSO[curso] || [];
+    const areaMap = {};
+    areas.forEach(g => g.materias.forEach(m => { areaMap[m] = g.area; }));
+
+    let todasMaterias = [];
+    if (AREAS_POR_CURSO[curso]) {
+      AREAS_POR_CURSO[curso].forEach(g => { todasMaterias = todasMaterias.concat(g.materias); });
+    } else if (MATERIAS_4_5[curso]) {
+      todasMaterias = MATERIAS_4_5[curso];
+    }
+
+    const resp = await fetch(URL_WEB_APP, {
+      method: 'POST', mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'crearPlanillaInformes',
+        correo: sesionActual.correo,
+        curso, turno, periodo,
+        preceptor,
+        materias: todasMaterias,
+        areaMap
+      })
+    });
+
+    const result = await resp.json();
+    if (result.success) {
+      window.open(result.url, '_blank');
+      cerrarModalInforme();
+      validarYFiltrar();
+    } else {
+      alert('Error: ' + (result.error || 'Error al crear la planilla'));
+    }
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-file-alt"></i> Planilla';
+  }
+}
+
 function cabeceraHTML(alumno, curso, preceptor, periodo) {
   const esBimestre = periodo && periodo.includes('Bimestre');
   const anioEl = document.getElementById('input-anio-libro');
@@ -2151,28 +2493,30 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
       </tr>`;
     });
   } else {
-    // 1°-3° año: agrupar por área
+    const esFormatoIndividual = anioDesde(curso) >= 4;
     const areas = AREAS_POR_CURSO[curso] || [];
     areas.forEach(grupo => {
       const area = grupo.area;
       const areaUpper = area.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      // Tomar obs y nota del primer subject que tenga datos (se usa rowspan)
       let obsVal = '';
       let notaVal = '';
-      for (const mat of grupo.materias) {
-        const matUpper = mat.toUpperCase();
-        const key = Object.keys(notas).find(k => {
-          const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return kn === matUpper || kn === areaUpper;
-        }) || mat;
-        const n = notas[key] || {};
-        const obs1 = n.obs1 || n.sel_1 || '';
-        const obs2 = n.obs2 || n.sel_2 || '';
-        const obs3 = n.obs3 || n.sel_3 || '';
-        const obsP = n.obs4 || n.observacion || '';
-        const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
-        if (cualis) obsVal = cualis;
-        if (n.nota) notaVal = (n.nota || '').toString().trim();
+      if (!esFormatoIndividual) {
+        // 1°-3°: tomar obs y nota del primer subject con datos (rowspan)
+        for (const mat of grupo.materias) {
+          const matUpper = mat.toUpperCase();
+          const key = Object.keys(notas).find(k => {
+            const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return kn === matUpper || kn === areaUpper;
+          }) || mat;
+          const n = notas[key] || {};
+          const obs1 = n.obs1 || n.sel_1 || '';
+          const obs2 = n.obs2 || n.sel_2 || '';
+          const obs3 = n.obs3 || n.sel_3 || '';
+          const obsP = n.obs4 || n.observacion || '';
+          const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
+          if (cualis) obsVal = cualis;
+          if (n.nota) notaVal = (n.nota || '').toString().trim();
+        }
       }
       grupo.materias.forEach((mat, idx) => {
         const matUpper = mat.toUpperCase();
@@ -2180,24 +2524,50 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
           const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           return kn === matUpper || kn === areaUpper;
         }) || mat;
+        const n = notas[key] || {};
         const docKey = Object.keys(docenteMap).find(k => {
           const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           return kn === matUpper || kn === areaUpper;
         }) || mat;
         const doc = docenteMap[docKey] || 'Sin Docente';
-        if (idx === 0) {
-          filas += `<tr>
-            <td class="td-area-nombre" rowspan="${grupo.materias.length}">${area}</td>
-            <td class="td-mat" style="width:160px;">${mat}</td>
-            <td class="td-docente" style="width:120px;">${doc}</td>
-            <td class="td-obs" rowspan="${grupo.materias.length}">${obsVal || '-'}</td>
-            <td class="td-nota" style="width:48px;" rowspan="${grupo.materias.length}">${notaVal}</td>
-          </tr>`;
+        if (esFormatoIndividual) {
+          const obs1 = n.obs1 || n.sel_1 || '';
+          const obs2 = n.obs2 || n.sel_2 || '';
+          const obs3 = n.obs3 || n.sel_3 || '';
+          const obsP = n.obs4 || n.observacion || '';
+          const cualis = [obs1, obs2, obs3, obsP].filter(o => o).join(' · ');
+          const nota = (n.nota || '').toString().trim();
+          if (idx === 0) {
+            filas += `<tr>
+              <td class="td-area-nombre" rowspan="${grupo.materias.length}">${area}</td>
+              <td class="td-mat" style="width:160px;">${mat}</td>
+              <td class="td-docente" style="width:120px;">${doc}</td>
+              <td class="td-obs">${cualis || '-'}</td>
+              <td class="td-nota" style="width:48px;">${nota}</td>
+            </tr>`;
+          } else {
+            filas += `<tr>
+              <td class="td-mat" style="width:160px;">${mat}</td>
+              <td class="td-docente" style="width:120px;">${doc}</td>
+              <td class="td-obs">${cualis || '-'}</td>
+              <td class="td-nota" style="width:48px;">${nota}</td>
+            </tr>`;
+          }
         } else {
-          filas += `<tr>
-            <td class="td-mat" style="width:160px;">${mat}</td>
-            <td class="td-docente" style="width:120px;">${doc}</td>
-          </tr>`;
+          if (idx === 0) {
+            filas += `<tr>
+              <td class="td-area-nombre" rowspan="${grupo.materias.length}">${area}</td>
+              <td class="td-mat" style="width:160px;">${mat}</td>
+              <td class="td-docente" style="width:120px;">${doc}</td>
+              <td class="td-obs" rowspan="${grupo.materias.length}">${obsVal || '-'}</td>
+              <td class="td-nota" style="width:48px;" rowspan="${grupo.materias.length}">${notaVal}</td>
+            </tr>`;
+          } else {
+            filas += `<tr>
+              <td class="td-mat" style="width:160px;">${mat}</td>
+              <td class="td-docente" style="width:120px;">${doc}</td>
+            </tr>`;
+          }
         }
       });
     });
@@ -2479,8 +2849,49 @@ function mostrarModalAgregarAlumno() {
         selectTurno.disabled = false;
     }
 
+    // Auto-calcular próximo Nro. Orden disponible
+    setTimeout(function() {
+        calcularSiguienteDni('nuevo-alumno-curso', 'nuevo-alumno-turno', 'nuevo-alumno-dni');
+    }, 100);
+
     document.getElementById('modal-agregar-alumno').style.display = 'flex';
 }
+
+// Calcula el próximo DNI (Nro. Orden) disponible para el curso+turno seleccionado
+function calcularSiguienteDni(selectCursoId, selectTurnoId, inputDniId) {
+    const curso = document.getElementById(selectCursoId).value;
+    const turno = document.getElementById(selectTurnoId).value;
+    if (!curso || !turno) return;
+    var maxDni = 0;
+    (alumnosDesdeSheets || []).forEach(function(a) {
+        if (a.curso.trim().toUpperCase() === curso.trim().toUpperCase() &&
+            a.turno.trim().toUpperCase() === turno.trim().toUpperCase()) {
+            var dniNum = parseInt(String(a.dni).trim());
+            if (!isNaN(dniNum) && dniNum > maxDni) maxDni = dniNum;
+        }
+    });
+    document.getElementById(inputDniId).value = maxDni + 1;
+}
+
+// Event listeners para auto-calcular DNI al cambiar curso/turno en el modal de agregar
+(function() {
+    var cursoSelect = document.getElementById('nuevo-alumno-curso');
+    var turnoSelect = document.getElementById('nuevo-alumno-turno');
+    if (cursoSelect) {
+        cursoSelect.addEventListener('change', function() {
+            if (document.getElementById('alumno-modo').value === 'agregar') {
+                calcularSiguienteDni('nuevo-alumno-curso', 'nuevo-alumno-turno', 'nuevo-alumno-dni');
+            }
+        });
+    }
+    if (turnoSelect) {
+        turnoSelect.addEventListener('change', function() {
+            if (document.getElementById('alumno-modo').value === 'agregar') {
+                calcularSiguienteDni('nuevo-alumno-curso', 'nuevo-alumno-turno', 'nuevo-alumno-dni');
+            }
+        });
+    }
+})();
 
 function mostrarModalCargaMasiva() {
     const selectCurso = document.getElementById('cm-curso');
@@ -2596,6 +3007,13 @@ async function confirmarGuardarAlumno() {
         return;
     }
     
+    const btn = document.getElementById('btn-guardar-alumno');
+    const spinner = document.getElementById('spinner-guardar-alumno');
+    const texto = document.getElementById('texto-guardar-alumno');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    texto.textContent = 'Guardando...';
+    
     try {
         const resp = await fetch(URL_WEB_APP, {
             method: 'POST',
@@ -2627,6 +3045,9 @@ async function confirmarGuardarAlumno() {
         console.error(err);
         alert('Error al guardar alumno');
     }
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    texto.textContent = 'Guardar';
 }
 
 async function confirmarCargaMasiva() {
@@ -2952,14 +3373,17 @@ function renderizarPreceptores() {
     }
 
     if (preceptores.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="padding:20px;text-align:center;color:#777;">No hay preceptores registrados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">No hay preceptores registrados</td></tr>';
         return;
     }
+
+    var etiquetaRol = { preceptor: 'Preceptor', jefe_preceptor: 'Jefe Preceptor', sub_jefe_preceptor: 'Sub Jefe Preceptor' };
 
     tbody.innerHTML = preceptores.map((p, i) => `
         <tr>
             <td>${i + 1}</td>
             <td style="text-align:left;">${p.correo}</td>
+            <td>${etiquetaRol[p.rol] || p.rol || 'Preceptor'}</td>
             <td>${p.turno || '-'}</td>
             <td>${p.curso || '-'}</td>
             <td>
