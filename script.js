@@ -5,7 +5,7 @@ const baseDeDatosAlumnos = {};
 const materiasPorCurso = {
     "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-    "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
+    "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
     "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
@@ -15,8 +15,8 @@ const materiasPorCurso = {
     "3 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
     "3 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
     "3 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
-   "4 A": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
-    "4 B": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
+        "4 A": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
+    "4 B": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
     "4 C": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE", "LENGUAS OTRAS", "EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA", "CS. BIOLÓGICAS", "QUÍMICA", "FÍSICA", "FILOSOFÍA DE LAS CIENCIAS", "GEOPOLÍTICA", "ESTUDIOS SOCIALES Y CULTURALES", "GENEALOGÍAS DE LAS ARTES Y LAS ESTÉTICA", "COMUNICACIÓN, DISCURSO Y PRODUCCIÓN DE SENTIDOS", "PROYECTOS SOCIOCOMUNITARIOS"],
     "5 A": ["IDIOMA EXTRANJERO INGLÉS O FRANCÉS","MATEMÁTICA FINANCIERA","MERCEOLOGÍA","GEOGRAFÍA","DERECHO COMERCIAL","DERECHO ADMINISTRATIVO","ORGANIZACIÓN DEL COMERCIO Y DE LA EMPRESA","ECONOMÍA POLÍTICA","CONTABILIDAD","ESTENOGRAFÍA","MECANOGRAFÍA","EDUCACIÓN FÍSICA","INFORMÁTICA V"],
     "5 B": ["IDIOMA EXTRANJERO INGLÉS O FRANCÉS","MATEMÁTICA FINANCIERA","MERCEOLOGÍA","GEOGRAFÍA","DERECHO COMERCIAL","DERECHO ADMINISTRATIVO","ORGANIZACIÓN DEL COMERCIO Y DE LA EMPRESA","ECONOMÍA POLÍTICA","CONTABILIDAD","ESTENOGRAFÍA","MECANOGRAFÍA","EDUCACIÓN FÍSICA","INFORMÁTICA V"],
@@ -246,7 +246,7 @@ async function iniciarApp() {
     if (!sesionActual) return;
 
     document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app-main').style.display = 'block';
+    document.getElementById('loading-overlay').style.display = 'flex';
 
     await precargarAlumnosDesdeSheets();
     await cargarRecursantes();
@@ -260,6 +260,9 @@ async function iniciarApp() {
 
     await cargarDesdeSheetsAlIniciar();
     await cargarFechasLimiteGlobal();
+
+    document.getElementById('loading-overlay').style.display = 'none';
+    document.getElementById('app-main').style.display = 'block';
 
     if (['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol)) {
         switchMainTab('alumnos');
@@ -459,7 +462,7 @@ function actualizarMaterias() {
     const materiasPorCurso = {
         "1 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
         "1 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
-        "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREATECNOLOGÍA"],
+    "1 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
         "1 D": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
         "1 E": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
         "2 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "EDUCACION SEXUAL INTEGRAL", "INTERÁREA TECNOLOGÍA"],
@@ -469,8 +472,8 @@ function actualizarMaterias() {
         "3 A": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
         "3 B": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
         "3 C": ["CIENCIAS SOCIALES, POLÍTICAS Y ECONÓMICAS", "LENGUAJES Y PRODUCCIÓN CULTURAL", "CIENCIAS NATURALES", "MATEMÁTICA E INFORMÁTICA", "EDUCACION FISICA INTEGRAL", "INTERÁREA TECNOLOGÍA", "COMUNICACIÓN Y MEDIOS", "INVESTIGACIÓN DE LAS ORIENTACIONES"],
-        "4 A": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
-        "4 B": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
+        "4 A": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
+        "4 B": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA","CS. BIOLÓGICAS","QUÍMICA","FÍSICA","ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"],
         "4 C": ["HISTORIA", "GEOGRAFÍA", "SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES", "LENGUA Y LITERATURA","ARTE", "LENGUAS OTRAS", "EDUCACION FISICA INTEGRAL", "MATEMÁTICA","INFORMÁTICA", "CS. BIOLÓGICAS", "QUÍMICA", "FÍSICA", "FILOSOFÍA DE LAS CIENCIAS", "GEOPOLÍTICA", "ESTUDIOS SOCIALES Y CULTURALES", "GENEALOGÍAS DE LAS ARTES Y LAS ESTÉTICA", "COMUNICACIÓN, DISCURSO Y PRODUCCIÓN DE SENTIDOS", "PROYECTOS SOCIOCOMUNITARIOS"],
         "5 A": ["IDIOMA EXTRANJERO INGLÉS O FRANCÉS","MATEMÁTICA FINANCIERA","MERCEOLOGÍA","GEOGRAFÍA","DERECHO COMERCIAL","DERECHO ADMINISTRATIVO","ORGANIZACIÓN DEL COMERCIO Y DE LA EMPRESA","ECONOMÍA POLÍTICA","CONTABILIDAD","ESTENOGRAFÍA","MECANOGRAFÍA","EDUCACIÓN FÍSICA","INFORMÁTICA V"],
         "5 B": ["IDIOMA EXTRANJERO INGLÉS O FRANCÉS","MATEMÁTICA FINANCIERA","MERCEOLOGÍA","GEOGRAFÍA","DERECHO COMERCIAL","DERECHO ADMINISTRATIVO","ORGANIZACIÓN DEL COMERCIO Y DE LA EMPRESA","ECONOMÍA POLÍTICA","CONTABILIDAD","ESTENOGRAFÍA","MECANOGRAFÍA","EDUCACIÓN FÍSICA","INFORMÁTICA V"],
@@ -639,6 +642,8 @@ async function cargarAlumnos() {
         actualizarAvisoFechaLimite('');
         return;
     }
+
+    document.getElementById('loader-tabla').style.display = 'block';
 
     // Asegurar fechas limite cargadas
     if (Object.keys(fechasLimite).length === 0) {
@@ -849,6 +854,7 @@ async function cargarAlumnos() {
         tbody.appendChild(tr);
     });
     actualizarAvisoFechaLimite(periodo);
+    document.getElementById('loader-tabla').style.display = 'none';
 }
 
 // 4. EVENTOS
@@ -1943,11 +1949,11 @@ const areasPorMateria = {
     "FISICA": "CIENCIAS NATURALES",
     "CS. BIOLOGICAS": "CIENCIAS NATURALES",
     "CIENCIAS BIOLOGICAS": "CIENCIAS NATURALES",
-    "MATEMATICA": "MATEMATICA E INFORMATICA",
-    "INFORMATICA": "MATEMATICA E INFORMATICA",
-    "MATEMATICA E INFORMATICA": "MATEMATICA E INFORMATICA",
-    "INFORMATICA V": "MATEMATICA E INFORMATICA",
-    "MATEMATICA FINANCIERA": "MATEMATICA E INFORMATICA",
+    "MATEMATICA": "MATEMÁTICA E INFORMÁTICA",
+    "INFORMATICA": "MATEMÁTICA E INFORMÁTICA",
+    "MATEMATICA E INFORMATICA": "MATEMÁTICA E INFORMÁTICA",
+    "INFORMATICA V": "MATEMÁTICA E INFORMÁTICA",
+    "MATEMATICA FINANCIERA": "MATEMÁTICA E INFORMÁTICA",
     "EDUCACION FISICA INTEGRAL": "EDUCACION FISICA INTEGRAL",
     "EDUCACION FISICA": "EDUCACION FISICA INTEGRAL",
     "EDUCACION SEXUAL INTEGRAL": "INTERAREA EDUCACION SEXUAL INTEGRAL",
@@ -1973,37 +1979,67 @@ const AREAS_POR_CURSO = {
     { area: "Interárea Tecnología",                      materias: ["INTEGRACION TECNOLOGICA"] }
   ],
   "2 B": [
-    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIAS","FILOSOFIA"] },
-    { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","DANZA","MUSICA","ARTES VISUALES"] },
-    { area: "Ciencias Naturales",                        materias: ["BIOLOGIA","FISICO QUIMICA"] },
-    { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA"] },
+    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","ECONOMÍA","CONSTRUCCIÓN DE CIUDADANÍAS","FILOSOFÍA"] },
+    { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","DANZA","MÚSICA","ARTES VISUALES"] },
+    { area: "Ciencias Naturales",                        materias: ["BIOLOGÍA","FÍSICO QUÍMICA"] },
+    { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
     { area: "Educación Física Integral",                 materias: ["EDUCACION FISICA INTEGRAL"] },
-    { area: "Interárea Ed. Sexual Integral",             materias: ["EDUCACION SEXUAL INTEGRAL"] },
-    { area: "Interárea Tecnología",                      materias: ["INTEGRACION TECNOLOGICA"] }
+    { area: "Interárea Educación Sexual Integral",       materias: ["EDUCACION SEXUAL INTEGRAL"] },
+    { area: "Interárea Tecnología",                      materias: ["INTEGRACIÓN TECNOLÓGICA"] }
   ],
   "3 A": [
-    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","ECONOMIA","CONSTRUCCION DE CIUDADANIAS","FILOSOFIA"] },
+    { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","ECONOMÍA","CONSTRUCCIÓN DE CIUDADANÍAS"] },
     { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","LENGUAS PREEXISTENTES","ARTES VISUALES"] },
-    { area: "Ciencias Naturales",                        materias: ["BIOLOGIA","FISICO QUIMICA"] },
-    { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA"] },
+    { area: "Ciencias Naturales",                        materias: ["BIOLOGÍA","QUÍMICA","FÍSICA"] },
+    { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
     { area: "Educación Física Integral",                 materias: ["EDUCACION FISICA INTEGRAL"] },
-    { area: "Interárea Tecnología",                      materias: ["INTEGRACION TECNOLOGICA"] },
-    { area: "Comunicación y Medios",                     materias: ["COMUNICACION Y MEDIOS"] },
-    { area: "Investigación de las Orientaciones",        materias: ["INVESTIGACION DE LAS ORIENTACIONES"] }
+    { area: "Interárea Tecnología",                      materias: ["INTEGRACIÓN TECNOLÓGICA"] },
+    { area: "Comunicación y Medios",                     materias: ["COMUNICACIÓN Y MEDIOS"] },
+    { area: "Investigación de las Orientaciones",        materias: ["INVESTIGACIÓN DE LAS ORIENTACIONES"] }
   ]
 };
-["1 B","1 C","1 D","1 E"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["1 A"]);
-["2 A","2 C","2 D"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["2 B"]);
-["3 B","3 C"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["3 A"]);
-["4 A","4 B","4 C"].forEach(c => AREAS_POR_CURSO[c] = [
-  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFIA","SOCIEDADES, POLITICAS Y SUBJETIVIDADES","ESTADOS, POLITICAS Y LEGISLACIONES","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","FILOSOFIA DE LAS CIENCIAS","GEOPOLITICA","ESTUDIOS SOCIALES Y CULTURALES","PROYECTOS SOCIOCOMUNITARIOS"] },
-  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","GENEALOGIAS DE LAS ARTES Y LAS ESTETICA"] },
-  { area: "Ciencias Naturales",                        materias: ["CS. BIOLOGICAS","QUIMICA","FISICA"] },
-  { area: "Matemática e Informática",                  materias: ["MATEMATICA","INFORMATICA","SISTEMA DE INFORMACION CONTABLE"] },
+AREAS_POR_CURSO["1 A"] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","ECONOMÍA","CONSTRUCCIÓN DE CIUDADANÍAS","FILOSOFÍA"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","TEATRO","MÚSICA","ARTES VISUALES"] },
+  { area: "Ciencias Naturales",                        materias: ["BIOLOGÍA","FÍSICO QUÍMICA"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
   { area: "Educación Física Integral",                 materias: ["EDUCACION FISICA INTEGRAL"] },
-  { area: "Comunicación y Medios",                     materias: ["COMUNICACION, DISCURSO Y PRODUCCION DE SENTIDOS"] },
-  { area: "Integración Curricular",                    materias: ["INTEGRACION CURRICULAR: ANALISIS Y EVALUACION DE PROYECTOS"] }
-]);
+  { area: "Interárea Educación Sexual Integral",       materias: ["EDUCACION SEXUAL INTEGRAL"] },
+  { area: "Interárea Tecnología",                      materias: ["INTEGRACIÓN TECNOLÓGICA"] }
+];
+["1 B","1 C","1 D","1 E"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["1 A"]);
+AREAS_POR_CURSO["2 A"] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","ECONOMÍA","CONSTRUCCIÓN DE CIUDADANÍAS","FILOSOFÍA"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA","LITERATURA","LENGUAS OTRAS","TEATRO","MÚSICA","ARTES VISUALES"] },
+  { area: "Ciencias Naturales",                        materias: ["BIOLOGÍA","FÍSICO QUÍMICA"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
+  { area: "Educación Física Integral",                 materias: ["EDUCACION FISICA INTEGRAL"] },
+  { area: "Interárea Educación Sexual Integral",       materias: ["EDUCACION SEXUAL INTEGRAL"] },
+  { area: "Interárea Tecnología",                      materias: ["INTEGRACIÓN TECNOLÓGICA"] }
+];
+["2 C","2 D"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["2 B"]);
+["3 B","3 C"].forEach(c => AREAS_POR_CURSO[c] = AREAS_POR_CURSO["3 A"]);
+AREAS_POR_CURSO["4 A"] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
+  { area: "Ciencias Naturales",                        materias: ["CS. BIOLÓGICAS","QUÍMICA","FÍSICA"] },
+  { area: "Formación Específica",                      materias: ["ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍAS","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"] }
+];
+AREAS_POR_CURSO["4 B"] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
+  { area: "Ciencias Naturales",                        materias: ["CS. BIOLÓGICAS","QUÍMICA","FÍSICA"] },
+  { area: "Formación Específica",                      materias: ["ESTADOS, POLÍTICAS Y LEGISLACIONES","SISTEMA DE INFORMACIÓN CONTABLE","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACIÓN CURRICULAR: ANÁLISIS Y EVALUACIÓN DE PROYECTOS"] }
+];
+AREAS_POR_CURSO["4 C"] = [
+  { area: "Ciencias Sociales, Políticas y Económicas", materias: ["HISTORIA","GEOGRAFÍA","SOCIEDADES, POLÍTICAS Y SUBJETIVIDADES"] },
+  { area: "Lenguajes y Producción Cultural",           materias: ["LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL"] },
+  { area: "Matemática e Informática",                  materias: ["MATEMÁTICA","INFORMÁTICA"] },
+  { area: "Ciencias Naturales",                        materias: ["CS. BIOLÓGICAS","QUÍMICA","FÍSICA"] },
+  { area: "Formación Específica",                      materias: ["FILOSOFÍA DE LAS CIENCIAS","GEOPOLÍTICA","ESTUDIOS SOCIALES Y CULTURALES","GENEALOGÍAS DE LAS ARTES Y LAS ESTÉTICA","COMUNICACIÓN, DISCURSO Y PRODUCCIÓN DE SENTIDOS","PROYECTOS SOCIOCOMUNITARIOS"] }
+];
 
 const MATERIAS_4_5 = {
   "4 A": ["HISTORIA","GEOGRAFIA","SOCIEDADES, POLITICAS Y SUBJETIVIDADES","LENGUA Y LITERATURA","ARTE","LENGUAS OTRAS","EDUCACION FISICA INTEGRAL","MATEMATICA","INFORMATICA","CS. BIOLOGICAS","QUIMICA","FISICA","ESTADOS, POLITICAS Y LEGISLACIONES","SISTEMA DE INFORMACION CONTABLE","ECONOMÍA","ORGANIZACIONES Y ADMINISTRACIONES","INTEGRACION CURRICULAR: ANALISIS Y EVALUACION DE PROYECTOS"],
@@ -2111,279 +2147,6 @@ function _keyNotas(notas, materia) {
   return Object.keys(notas).find(k => norm(k) === mNorm) || materia;
 }
 
-async function generarExcelInformes() {
-  const curso     = document.getElementById('informe-curso').value;
-  const periodo   = document.getElementById('informe-periodo').value;
-  const turno     = document.getElementById('informe-turno').value;
-  const preceptor = document.getElementById('informe-preceptor').value.trim();
-
-  if (!curso || !periodo || !turno) { alert('Completá Curso, Turno y Período.'); return; }
-
-  const btn = document.getElementById('btn-generar-excel');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
-
-  try {
-    const url = `${URL_WEB_APP}?action=obtenerInformeCurso`
-      + `&correo=${encodeURIComponent(sesionActual.correo)}`
-      + `&curso=${encodeURIComponent(curso)}`
-      + `&turno=${encodeURIComponent(turno)}`
-      + `&periodo=${encodeURIComponent(periodo)}`;
-
-    const resp = await fetch(url, { method:'GET', mode:'cors' });
-    const data = await resp.json();
-
-    if (!data.success) { alert('Error: ' + data.error); return; }
-    if (!data.alumnos?.length) { alert('No se encontraron alumnos para este curso.'); return; }
-
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando Excel...';
-
-    const preceptorFinal = preceptor || data.preceptor || '';
-
-    const areas = AREAS_POR_CURSO[curso] || [];
-    const areaMap = {};
-    areas.forEach(g => g.materias.forEach(m => { areaMap[m] = g.area; }));
-
-    let todasMaterias = [];
-    if (AREAS_POR_CURSO[curso]) {
-      AREAS_POR_CURSO[curso].forEach(g => { todasMaterias = todasMaterias.concat(g.materias); });
-    } else if (MATERIAS_4_5[curso]) {
-      todasMaterias = MATERIAS_4_5[curso];
-    }
-
-    const anioActual = new Date().getFullYear();
-    const wb = XLSX.utils.book_new();
-    const labelPer = periodo.includes('Bimestre') ? 'Bimestral' : 'Cuatrimestral';
-    const es5 = anioDesde(curso) >= 5;
-    const usarFormato45 = es5 || (anioDesde(curso) >= 1 && anioDesde(curso) <= 3 && periodo.includes('Bimestre'));
-
-    data.alumnos.forEach(alumno => {
-      const alumnoKey = _keyNotas(data.notasMap, alumno.nombre);
-      const notas = data.notasMap[alumnoKey] || {};
-      const recursantes = data.recursantesMap?.[alumno.dni];
-      const materias = recursantes?.length ? recursantes : todasMaterias;
-
-      const sd = [];
-
-      if (usarFormato45) {
-        // ── FORMATO 4/5: doble fila de encabezados (10 columnas) ──
-        const lastCol45 = 9;
-        sd[0] = [`CPEM N° 32 — Informe ${labelPer} ${anioActual}`, '', '', '', '', '', '', '', '', ''];
-        sd[1] = [periodo.toUpperCase(), '', '', '', '', '', '', '', '', ''];
-        sd[2] = [`Estudiante: ${alumno.nombre}`, '', '', `Curso: ${curso}`, '', '', `Preceptor/a: ${preceptorFinal}`, '', '', ''];
-        sd[3] = [];
-        sd[4] = ['Espacio Curricular','Docentes','Apropiación de conocimientos y saberes','','','Responsabilidad en su proceso de aprendizaje','','Cumplimiento de los AEC','Nota final','Observaciones'];
-        sd[5] = ['','','Interpreta','Relaciona','Aplica','Participación','Autonomía','','',''];
-
-        materias.forEach(mat => {
-          const key = _keyNotas(notas, mat);
-          const n = notas[key] || {};
-          const docKey = _keyNotas(data.docenteMap, mat);
-          const doc = data.docenteMap?.[docKey] || '';
-          const obsP = n.obs4 || n.observacion || '';
-          const obsC = [n.obs1, obsP].filter(o => o && o !== '-').map(o => '* ' + o).join('\n\n');
-          sd.push([
-            mat, doc,
-            n.interpreta || '-', n.relaciona || '-', n.aplica || '-',
-            n.participacion || '-', n.autonomia || '-',
-            n.cumplimiento_aec || '-', n.nota || '', obsC
-          ]);
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(sd);
-        const lastRow = sd.length - 1;
-        const lastCol = lastCol45;
-
-        const CP = '6D3B8E', CLA = 'C9A8DC', CLM = 'EFE8F5', CLN = 'DDD0EC';
-        const CLC = 'F3ECFA', CB = 'B39CC8', CBCO = 'FFFFFF', CTA = '3D1F5A';
-        const bdr = {
-          top:{style:'thin',color:{rgb:CB}},bottom:{style:'thin',color:{rgb:CB}},
-          left:{style:'thin',color:{rgb:CB}},right:{style:'thin',color:{rgb:CB}}
-        };
-        const bdrNT = {bottom:bdr.bottom,left:bdr.left,right:bdr.right};
-
-        for (let r = 0; r <= lastRow; r++) {
-          for (let c = 0; c <= lastCol; c++) {
-            const a = XLSX.utils.encode_cell({r,c});
-            if (!ws[a]) ws[a] = {t:'z'};
-            const cel = ws[a];
-            if (!cel.s) cel.s = {};
-            cel.s.border = (r === lastRow) ? {...bdrNT} : {...bdr, top:{...bdr.top}, bottom:{...bdr.bottom}, left:{...bdr.left}, right:{...bdr.right}};
-            cel.s.alignment = {vertical:'center',wrapText:true};
-            if (r === 0) {
-              cel.s.font = {bold:true,sz:14,color:{rgb:CBCO}};
-              cel.s.fill = {fgColor:{rgb:CP}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else if (r === 1) {
-              cel.s.font = {bold:true,sz:11,color:{rgb:CTA}};
-              cel.s.fill = {fgColor:{rgb:CLC}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else if (r === 2) {
-              cel.s.fill = {fgColor:{rgb:CLC}};
-              cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
-            } else if (r === 3) {
-              cel.s.fill = {fgColor:{rgb:CLC}};
-            } else if (r === 4 || r === 5) {
-              cel.s.font = {bold:true,sz:8,color:{rgb:CBCO}};
-              cel.s.fill = {fgColor:{rgb:CP}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else {
-              if (c === 0) {
-                cel.s.font = {bold:true,sz:9,color:{rgb:CTA}};
-                cel.s.fill = {fgColor:{rgb:CLM}};
-              } else if (c === 8) {
-                cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
-                cel.s.fill = {fgColor:{rgb:CLN}};
-                cel.s.alignment = {horizontal:'center',vertical:'center'};
-              } else if (c >= 1 && c <= 7) {
-                cel.s.fill = {fgColor:{rgb:CLM}};
-                cel.s.font = {sz:8,color:{rgb:CTA}};
-                if (c >= 2) cel.s.alignment = {horizontal:'center',vertical:'center'};
-              } else {
-                cel.s.font = {sz:9};
-              }
-            }
-          }
-        }
-
-        ws['!merges'] = [
-          {s:{r:0,c:0},e:{r:0,c:lastCol}},
-          {s:{r:1,c:0},e:{r:1,c:lastCol}},
-          {s:{r:2,c:0},e:{r:2,c:2}},
-          {s:{r:2,c:3},e:{r:2,c:5}},
-          {s:{r:2,c:6},e:{r:2,c:lastCol}},
-          {s:{r:4,c:0},e:{r:5,c:0}},
-          {s:{r:4,c:1},e:{r:5,c:1}},
-          {s:{r:4,c:2},e:{r:4,c:4}},
-          {s:{r:4,c:5},e:{r:4,c:6}},
-          {s:{r:4,c:7},e:{r:5,c:7}},
-          {s:{r:4,c:8},e:{r:5,c:8}},
-          {s:{r:4,c:9},e:{r:5,c:9}}
-        ];
-        ws['!cols'] = [
-          {wch:35},{wch:20},{wch:12},{wch:12},{wch:12},
-          {wch:14},{wch:14},{wch:22},{wch:14},{wch:30}
-        ];
-        ws['!rows'] = [{hpt:32},{hpt:22},{hpt:22},{hpt:6},{hpt:22},{hpt:22}];
-
-        const sn = alumno.nombre.replace(/[^\w\sáéíóúÁÉÍÓÚñÑ,-]/g,'').substring(0,31) || `Alumno`;
-        XLSX.utils.book_append_sheet(wb, ws, sn);
-
-      } else {
-        // ── FORMATO 1/3/4 (Área | Espacio Curricular | Docentes | Informe Cualitativo | NOTA) ──
-        const lastCol13 = 4;
-        sd[0] = [`CPEM N° 32 — Informe ${labelPer} ${anioActual}`, '', '', '', ''];
-        sd[1] = [periodo.toUpperCase(), '', '', '', ''];
-        sd[2] = [`Estudiante: ${alumno.nombre}`, '', '', `Curso: ${curso}`, ''];
-        sd[3] = [];
-        sd[4] = ['Área','Espacio Curricular','Docentes','Informe Cualitativo','NOTA'];
-
-        materias.forEach(mat => {
-          const key = _keyNotas(notas, mat);
-          const n = notas[key] || {};
-          const docKey = _keyNotas(data.docenteMap, mat);
-          const doc = data.docenteMap?.[docKey] || '';
-          const obsP = n.obs4 || n.observacion || '';
-          const cualis = [n.obs1||n.sel_1||'', n.obs2||n.sel_2||'', n.obs3||n.sel_3||'', obsP].filter(o => o).map(o => '* ' + o).join('\n\n');
-          sd.push([areaMap[mat] || '', mat, doc, cualis, n.nota || '']);
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(sd);
-        const lastRow = sd.length - 1;
-        const lastCol = lastCol13;
-
-        const CP = '6D3B8E', CLA = 'C9A8DC', CLM = 'EFE8F5', CLN = 'DDD0EC';
-        const CLC = 'F3ECFA', CB = 'B39CC8', CBCO = 'FFFFFF', CTA = '3D1F5A', CN = '222222';
-        const bdr = {
-          top:{style:'thin',color:{rgb:CB}},bottom:{style:'thin',color:{rgb:CB}},
-          left:{style:'thin',color:{rgb:CB}},right:{style:'thin',color:{rgb:CB}}
-        };
-        const bdrNT = {bottom:bdr.bottom,left:bdr.left,right:bdr.right};
-
-        for (let r = 0; r <= lastRow; r++) {
-          for (let c = 0; c <= lastCol; c++) {
-            const a = XLSX.utils.encode_cell({r,c});
-            if (!ws[a]) ws[a] = {t:'z'};
-            const cel = ws[a];
-            if (!cel.s) cel.s = {};
-            cel.s.border = (r === lastRow) ? {...bdrNT} : {...bdr, top:{...bdr.top}, bottom:{...bdr.bottom}, left:{...bdr.left}, right:{...bdr.right}};
-            cel.s.alignment = {vertical:'center',wrapText:true};
-            if (r === 0) {
-              cel.s.font = {bold:true,sz:14,color:{rgb:CBCO}};
-              cel.s.fill = {fgColor:{rgb:CP}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else if (r === 1) {
-              cel.s.font = {bold:true,sz:11,color:{rgb:CTA}};
-              cel.s.fill = {fgColor:{rgb:CLC}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else if (r === 2) {
-              cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
-              cel.s.fill = {fgColor:{rgb:CLC}};
-            } else if (r === 3) {
-              cel.s.fill = {fgColor:{rgb:CLC}};
-            } else if (r === 4) {
-              cel.s.font = {bold:true,sz:9,color:{rgb:CBCO}};
-              cel.s.fill = {fgColor:{rgb:CP}};
-              cel.s.alignment = {horizontal:'center',vertical:'center'};
-            } else {
-              if (c === 0) {
-                cel.s.font = {bold:true,sz:9,color:{rgb:CTA}};
-                cel.s.fill = {fgColor:{rgb:CLA}};
-                cel.s.alignment = {horizontal:'center',vertical:'center'};
-              } else if (c === 1 || c === 2) {
-                cel.s.fill = {fgColor:{rgb:CLM}};
-                cel.s.font = {sz:8};
-              } else if (c === 4) {
-                cel.s.font = {bold:true,sz:10,color:{rgb:CTA}};
-                cel.s.fill = {fgColor:{rgb:CLN}};
-                cel.s.alignment = {horizontal:'center',vertical:'center'};
-              } else {
-                cel.s.font = {sz:9,color:{rgb:CN}};
-              }
-            }
-          }
-        }
-
-        const merges = [
-          {s:{r:0,c:0},e:{r:0,c:lastCol}},
-          {s:{r:1,c:0},e:{r:1,c:lastCol}},
-          {s:{r:2,c:0},e:{r:2,c:2}},
-          {s:{r:2,c:3},e:{r:2,c:lastCol}}
-        ];
-        for (let i = 5; i <= lastRow; i++) {
-          const a = (sd[i]?.[0] || '').toString().trim();
-          if (a) {
-            let end = i;
-            for (let j = i + 1; j <= lastRow; j++) {
-              if ((sd[j]?.[0] || '').toString().trim()) break;
-              end = j;
-            }
-            if (end > i) merges.push({s:{r:i,c:0},e:{r:end,c:0}});
-            i = end;
-          }
-        }
-        ws['!merges'] = merges;
-        ws['!cols'] = [{wch:34},{wch:24},{wch:20},{wch:56},{wch:8}];
-        ws['!rows'] = [{hpt:32},{hpt:22},{hpt:22},{hpt:6},{hpt:22}];
-
-        const sn = alumno.nombre.replace(/[^\w\sáéíóúÁÉÍÓÚñÑ,-]/g,'').substring(0,31) || `Alumno`;
-        XLSX.utils.book_append_sheet(wb, ws, sn);
-      }
-    });
-
-    const fileName = `Informes_${labelPer}_${curso.replace(/\s+/g,'_')}_${anioActual}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-
-    cerrarModalInforme();
-
-  } catch(err) {
-    alert('Error: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-file-excel"></i> Excel';
-  }
-}
-
 async function generarPlanillaInformes() {
   const curso     = document.getElementById('informe-curso').value;
   const periodo   = document.getElementById('informe-periodo').value;
@@ -2473,7 +2236,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
       const key = Object.keys(notas).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
       const n   = notas[key] || {};
       const docKey = Object.keys(docenteMap).find(k => k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === matUpper) || mat;
-      const doc = docenteMap[docKey] || 'Sin Docente';
+      const doc = docenteMap[docKey] || 'Sin Docentes';
       const obs1 = n.obs1 || n.sel_1 || '';
       const obs2 = n.obs2 || n.sel_2 || '';
       const obs3 = n.obs3 || n.sel_3 || '';
@@ -2525,7 +2288,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
           const kn = k.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           return kn === matUpper || kn === areaUpper;
         }) || mat;
-        const doc = docenteMap[docKey] || 'Sin Docente';
+        const doc = docenteMap[docKey] || 'Sin Docentes';
         if (esFormatoIndividual) {
           const obs1 = n.obs1 || n.sel_1 || '';
           const obs2 = n.obs2 || n.sel_2 || '';
@@ -4483,7 +4246,7 @@ function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docent
       const key = Object.keys(notas).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
       const n   = notas[key] || {};
       const docKey = Object.keys(docenteMap).find(k => k.toUpperCase() === mat.toUpperCase() || normalizarNombre(k) === normalizarNombre(mat)) || mat;
-      const doc = docenteMap[docKey] || 'Sin Docente';
+      const doc = docenteMap[docKey] || 'Sin Docentes';
       const nota = (n.nota || '').toString().trim();
       filas += `<tr>
         <td class="td-mat">${mat}</td>
