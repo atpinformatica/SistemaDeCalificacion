@@ -1695,13 +1695,9 @@ function obtenerAreasDisponibles() {
         (materiasPorCurso[curso] || []).forEach(function(m) { areas.add(m); });
         (frasesConfig[curso] ? Object.keys(frasesConfig[curso]) : []).forEach(function(a) { areas.add(a); });
     } else {
-        ['Ciencias Sociales, Políticas y Económicas',
-         'Lenguajes y Producción Cultural',
-         'Ciencias Naturales',
-         'Matemática e Informática',
-         'Educación Física Integral',
-         'Educación Sexual Integral',
-         'Interárea Tecnología'].forEach(function(a) { areas.add(a); });
+        Object.values(materiasPorCurso).forEach(function(materias) {
+            materias.forEach(function(m) { areas.add(m); });
+        });
         Object.values(frasesConfig).forEach(function(porAnio) {
             Object.keys(porAnio).forEach(function(a) { areas.add(a); });
         });
@@ -2185,7 +2181,7 @@ async function generarExcelInformes() {
           const docKey = _keyNotas(data.docenteMap, mat);
           const doc = data.docenteMap?.[docKey] || '';
           const obsP = n.obs4 || n.observacion || '';
-          const obsC = [n.obs1, obsP].filter(o => o && o !== '-').join(' · ');
+          const obsC = [n.obs1, obsP].filter(o => o && o !== '-').map(o => '* ' + o).join('\n\n');
           sd.push([
             mat, doc,
             n.interpreta || '-', n.relaciona || '-', n.aplica || '-',
@@ -2288,7 +2284,7 @@ async function generarExcelInformes() {
           const docKey = _keyNotas(data.docenteMap, mat);
           const doc = data.docenteMap?.[docKey] || '';
           const obsP = n.obs4 || n.observacion || '';
-          const cualis = [n.obs1||n.sel_1||'', n.obs2||n.sel_2||'', n.obs3||n.sel_3||'', obsP].filter(o => o).join(' · ');
+          const cualis = [n.obs1||n.sel_1||'', n.obs2||n.sel_2||'', n.obs3||n.sel_3||'', obsP].filter(o => o).map(o => '* ' + o).join('\n\n');
           sd.push([areaMap[mat] || '', mat, doc, cualis, n.nota || '']);
         });
 
@@ -2513,7 +2509,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
           const obs2 = n.obs2 || n.sel_2 || '';
           const obs3 = n.obs3 || n.sel_3 || '';
           const obsP = n.obs4 || n.observacion || '';
-          const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br>');
+      const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => `* ${o}`).join('<br><br>');
           if (cualis) obsVal = cualis;
           if (n.nota) notaVal = (n.nota || '').toString().trim();
         }
@@ -2535,7 +2531,7 @@ function paginaInforme13(alumno, curso, turno, periodo, preceptor, notas, docent
           const obs2 = n.obs2 || n.sel_2 || '';
           const obs3 = n.obs3 || n.sel_3 || '';
           const obsP = n.obs4 || n.observacion || '';
-          const cualis = [obs1, obs2, obs3, obsP].filter(o => o).join(' · ');
+          const cualis = [obs1, obs2, obs3, obsP].filter(o => o).map(o => '* ' + o).join('<br><br>');
           const nota = (n.nota || '').toString().trim();
           if (idx === 0) {
             filas += `<tr>
