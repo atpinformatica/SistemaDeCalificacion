@@ -28,7 +28,13 @@
       background: white;
     }
 
-    .pagina { page-break-after: always; page-break-inside: avoid; }
+    .pagina {
+      page-break-after: always;
+      width: 1107px;
+      height: 718px;
+      overflow: hidden;
+      position: relative;
+    }
     .marco-contenido { border: 5px solid var(--violeta-oscuro); border-radius: 4px; padding: 6px; }
     .pagina:last-child { page-break-after: avoid; }
 
@@ -271,25 +277,20 @@
       var paginas = document.querySelectorAll('.pagina');
       if (!paginas.length) return;
       var pageW = 1107, pageH = 718;
-      var MIN_SCALE = 0.55;
+      var MIN_SCALE = 0.5;
 
       paginas.forEach(function(pag) {
-        pag.style.zoom = '1';
-        pag.style.width = '';
-        pag.style.height = '';
-        void pag.offsetHeight;
-
-        pag.style.width = pageW + 'px';
+        pag.style.transform = 'none';
+        pag.style.transformOrigin = '';
         void pag.offsetHeight;
 
         var h = pag.scrollHeight;
-        var target = pageH - 8;
-        var s = Math.min(target / h, 1);
+        var s = Math.min(pageH / h, 1);
         if (s < MIN_SCALE) s = MIN_SCALE;
 
         if (s < 1) {
-          pag.style.width = (pageW / s) + 'px';
-          pag.style.zoom = String(s);
+          pag.style.transformOrigin = 'top left';
+          pag.style.transform = 'scale(' + s + ')';
         }
       });
     }
