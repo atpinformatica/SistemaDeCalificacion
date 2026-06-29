@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <base target="_blank">
 </head>
@@ -196,12 +197,18 @@
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end; margin-bottom:10px;">
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <label style="font-size:0.75rem; color:#666;">Año:</label>
-                        <select id="frases-anio" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;">
+                        <select id="frases-anio" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;" onchange="actualizarSelectorCursosFrases()">
                             <option value="1">1°</option>
                             <option value="2">2°</option>
                             <option value="3">3°</option>
                             <option value="4">4°</option>
                             <option value="5">5°</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label style="font-size:0.75rem; color:#666;">Curso:</label>
+                        <select id="frases-curso" style="padding:8px 12px; border-radius:4px; border:1px solid #ced4da;" onchange="filtrarListaAreas()">
+                            <option value="">Todos</option>
                         </select>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:2px; position:relative;">
@@ -352,13 +359,14 @@
                             <tr>
                                 <th>N°</th>
                                 <th>Correo Institucional</th>
+                                <th>Rol</th>
                                 <th>Turno</th>
                                 <th>Curso</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-preceptores">
-                            <tr><td colspan="5" style="padding:20px;text-align:center;color:#777;">Cargando preceptores...</td></tr>
+                            <tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">Cargando preceptores...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -601,7 +609,7 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-cancel" onclick="cerrarModal('modal-agregar-alumno')">Cancelar</button>
-                <button class="btn-confirm" onclick="confirmarGuardarAlumno()">Guardar</button>
+                <button class="btn-confirm" id="btn-guardar-alumno" onclick="confirmarGuardarAlumno()"><i class="fas fa-spinner fa-spin" id="spinner-guardar-alumno" style="display:none"></i> <span id="texto-guardar-alumno">Guardar</span></button>
             </div>
         </div>
     </div>
@@ -796,7 +804,13 @@
       <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;">
         <button onclick="cerrarModalInforme()" style="padding:10px 20px;border:1px solid #ddd;border-radius:6px;background:white;cursor:pointer;">Cancelar</button>
         <button id="btn-generar-informes" onclick="generarInformes()" style="padding:10px 20px;background:#0056b3;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">
-          <i class="fas fa-file-pdf"></i> Generar Informes PDF
+          <i class="fas fa-file-pdf"></i> PDF
+        </button>
+        <button id="btn-generar-excel" onclick="generarExcelInformes()" style="padding:10px 20px;background:#1d6f42;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">
+          <i class="fas fa-file-excel"></i> Excel
+        </button>
+        <button id="btn-generar-planilla" onclick="generarPlanillaInformes()" style="padding:10px 20px;background:#1a73e8;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:bold;">
+          <i class="fas fa-file-alt"></i> Planilla
         </button>
       </div>
     </div>
