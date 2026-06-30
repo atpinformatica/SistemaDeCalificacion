@@ -260,18 +260,22 @@ async function iniciarApp() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('loading-overlay').style.display = 'flex';
 
+    // precargarAlumnos debe terminar antes de cargarDesdeSheets
     await precargarAlumnosDesdeSheets();
-    await cargarRecursantes();
-    await cargarFrasesConfig();
+
+    // El resto corre en paralelo
+    await Promise.all([
+        cargarRecursantes(),
+        cargarFrasesConfig(),
+        cargarFechasLimiteGlobal(),
+        cargarDesdeSheetsAlIniciar()
+    ]);
 
     document.getElementById('session-email').textContent = sesionActual.correo;
     document.getElementById('session-rol').textContent = nombresRoles[sesionActual.rol] || sesionActual.rol;
 
     configurarUIporRol();
     actualizarSelectorTurnos();
-
-    await cargarDesdeSheetsAlIniciar();
-    await cargarFechasLimiteGlobal();
 
     document.getElementById('loading-overlay').style.display = 'none';
     document.getElementById('app-main').style.display = 'block';
