@@ -820,10 +820,11 @@ async function cargarAlumnos() {
 
             if (añoCurso >= 5 || periodo.includes("Bimestre")) {
                 const valP = persistido[`sel_1`] || "";
+                const frasesAC = obtenerFrasesDropdown(curso, materia, 1) || frases;
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">
                             <select class="nota-input select-obs-multiple" data-pos="1" style="font-size:0.85rem;min-width:260px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_1', this.value)">
                                 <option value="">Seleccione una frase...</option>
-                                ${frases.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
+                                ${frasesAC.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
                             </select>
                             <textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:40px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
                          </div></td>`;
