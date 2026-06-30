@@ -3386,7 +3386,7 @@ function verificarDatosCompletos() {
         if (!obs || obs.trim() === '' || obs === '-') {
             falta.push('Observacion');
         }
-        if (anoCurso >= 4 || esBimestre) {
+        if (anoCurso >= 5 || esBimestre) {
             const criterios = ["Interpreta", "Relaciona", "Aplica", "Participación", "Autonomía", "Realización de TP", "Cumplimiento AEC"];
             criterios.forEach(crit => {
                 const val = d[crit];
@@ -3617,7 +3617,7 @@ async function generarPDFComprobante() {
                 <tr>
                     <th class="col-n">N°</th>
                     <th class="col-nombre">Apellido y Nombre</th>
-                    ${anoCurso >= 4 || esBimestre ? `
+                    ${anoCurso >= 5 || esBimestre ? `
                         <th class="col-nota">Nota</th>
                         <th class="col-obs">Observaciones</th>
                         <th class="col-crit">Interp.</th>
@@ -3639,7 +3639,7 @@ async function generarPDFComprobante() {
     alumnos.forEach((alumno, index) => {
         const d = datosM[alumno.dni] || {};
         const nota = d.nota || '-';
-        const obs = (anoCurso >= 4 || esBimestre)
+        const obs = (anoCurso >= 5 || esBimestre)
             ? (d.observacion || d.sel_1 || '-')
             : [d.sel_1, d.sel_2, d.sel_3, d.observacion].filter(o => o).map(o => `* ${o}`).join('<br>') || '-';
         
@@ -3648,7 +3648,7 @@ async function generarPDFComprobante() {
             <td class="col-nombre">${alumno.nombre}</td>
         `;
         
-        if (anoCurso >= 4 || esBimestre) {
+        if (anoCurso >= 5 || esBimestre) {
             const badgeClass = (val) => {
                 const v = (val || '-').toString().toLowerCase().trim();
                 if (v === 'siempre') return 'badge-siempre';
