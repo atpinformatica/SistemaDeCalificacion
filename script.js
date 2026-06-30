@@ -49,6 +49,18 @@ let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
 
+async function fetchConReintento(url, options, maxIntentos = 3) {
+  for (let i = 0; i < maxIntentos; i++) {
+    try {
+      const resp = await fetch(url, { ...options, redirect: 'follow' });
+      return resp;
+    } catch (e) {
+      if (i === maxIntentos - 1) throw e;
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
+
 const nombresRoles = {
   admin: 'Administrador',
   docente: 'Docente',
@@ -184,7 +196,7 @@ async function verificarAcceso() {
     btnLogin.disabled = true;
 
     try {
-        const resp = await fetch(URL_WEB_APP, {
+        const resp = await fetchConReintento(URL_WEB_APP, {
             method: 'POST',
             mode: 'cors',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
