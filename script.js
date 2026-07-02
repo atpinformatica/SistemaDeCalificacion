@@ -1117,6 +1117,8 @@ async function guardarEnGoogleSheets() {
 
 function verificarPermisoEdicion(materia, curso) {
     if (!sesionActual) return false;
+    // asesoria@cpem32.edu.ar solo lectura en calificaciones
+    if (sesionActual.correo === 'asesoria@cpem32.edu.ar') return false;
     if (sesionActual.rol === 'admin') return true;
     const rol = sesionActual.rol;
     if (rol === 'jefe_preceptor' || rol === 'sub_jefe_preceptor' || rol === 'preceptor') {
@@ -2401,7 +2403,7 @@ function buscarAlumnoPorNombre(turno, curso, nombre) {
 
 async function cargarListaAlumnosGestion() {
     const tbody = document.getElementById('tbody-alumnos-gestion');
-    tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;"><i class="fas fa-spinner fa-spin"></i> Cargando alumnos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#777;"><i class="fas fa-spinner fa-spin"></i> Cargando alumnos...</td></tr>';
 
     const esPreceptorOjefe = sesionActual && ['preceptor', 'jefe_preceptor', 'sub_jefe_preceptor'].includes(sesionActual.rol);
     let cursosPermitidos = (sesionActual?.cursos_permitidos || []).map(c => String(c).trim().toUpperCase());
@@ -2558,7 +2560,7 @@ function renderizarTablaAlumnos() {
     );
 
     if (alumnos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#777;">No se encontraron alumnos</td></tr>';
         return;
     }
 
@@ -2588,8 +2590,43 @@ function renderizarTablaAlumnos() {
                        </button>`
                 }
             </td>
+            <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <input type="text" class="ecap-input" data-dni="${a.dni}" data-curso="${a.curso}" data-turno="${a.turno}"
+                           value="${(a.ecap || '').replace(/"/g, '&quot;')}"
+                           style="flex:1;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:0.8rem;"
+                           placeholder="Escribir mensaje ECAP...">
+                    <span class="ecap-spinner"></span>
+                    <span class="ecap-check" style="font-size:1.1rem;color:#28a745;display:${a.ecap ? 'inline' : 'none'};">&#10003;</span>
+                </div>
+            </td>
         </tr>
     `).join('');
+    
+    // Auto-guardar ECAP al escribir con debounce
+    document.querySelectorAll('.ecap-input').forEach(function(inp) {
+        var timer;
+        inp.addEventListener('input', function() {
+            clearTimeout(timer);
+            var container = this.parentElement;
+            container.querySelector('.ecap-spinner').style.display = 'inline-block';
+            container.querySelector('.ecap-check').style.display = 'none';
+            var dni = this.getAttribute('data-dni');
+            var curso = this.getAttribute('data-curso');
+            var turno = this.getAttribute('data-turno');
+            timer = setTimeout(function() {
+                guardarECAP(dni, curso, turno, inp.value, function(exito) {
+                    var sp = container.querySelector('.ecap-spinner');
+                    var ch = container.querySelector('.ecap-check');
+                    sp.style.display = 'none';
+                    if (exito) {
+                        ch.style.display = 'inline';
+                        setTimeout(function() { ch.style.display = 'none'; }, 3000);
+                    }
+                });
+            }, 400);
+        });
+    });
 }
 
 function filtrarAlumnos() {
@@ -2914,6 +2951,29 @@ async function eliminarAlumno(turno, curso, dni) {
     } catch (err) {
         console.error(err);
         alert('Error al eliminar alumno');
+    }
+}
+
+async function guardarECAP(dni, curso, turno, texto, callback) {
+    try {
+        const resp = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'guardarECAP',
+                correo: sesionActual.correo,
+                dni: dni,
+                curso: curso,
+                turno: turno,
+                ecap: texto
+            })
+        });
+        const resultado = await resp.json();
+        if (callback) callback(resultado && resultado.success);
+    } catch (err) {
+        console.error('Error al guardar ECAP:', err);
+        if (callback) callback(false);
     }
 }
 
