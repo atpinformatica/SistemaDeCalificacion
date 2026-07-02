@@ -8,6 +8,21 @@
     --verde-exito: #27ae60;
 }
 
+@keyframes ecap-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.ecap-spinner {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ccc;
+    border-top-color: #28a745;
+    border-radius: 50%;
+    animation: ecap-spin 0.6s linear infinite;
+    flex-shrink: 0;
+}
+
 /* RESET Y BASE */
 * { box-sizing: border-box; }
 body { 
