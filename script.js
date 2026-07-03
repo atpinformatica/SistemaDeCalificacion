@@ -808,7 +808,7 @@ async function cargarAlumnos() {
                     html += `<option value="${i}" ${n == i ? 'selected' : ''}>${i}</option>`;
                 }
                 html += `<option value="Ausente" ${n === 'Ausente' ? 'selected' : ''}>Ausente</option>`;
-                html += `<option value="Sin califica" ${n === 'Sin califica' ? 'selected' : ''}>Sin califica</option>`;
+                html += `<option value="Sin calificar" ${n === 'Sin calificar' ? 'selected' : ''}>Sin calificar</option>`;
             } else {
                 escalaConceptos.forEach(e => {
                     html += `<option value="${e}" ${n == e ? 'selected' : ''}>${e}</option>`;
@@ -3434,7 +3434,7 @@ function verificarDatosCompletos() {
         let falta = [];
         if (esCuatrimestre) {
             const notaNum = parseInt(d.nota);
-            if (!d.nota || d.nota.trim() === '' || (isNaN(notaNum) && d.nota !== 'Ausente' && d.nota !== 'Sin califica') || notaNum < 4 || notaNum > 10) {
+            if (!d.nota || d.nota.trim() === '' || (isNaN(notaNum) && d.nota !== 'Ausente' && d.nota !== 'Sin calificar') || notaNum < 4 || notaNum > 10) {
                 falta.push('Nota');
             }
         } else {
