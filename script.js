@@ -47,7 +47,7 @@ let frasesConfig = {};
 let fechasLimite = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxnS9qNjshBrI81t9IzVON9E4EzZYLivWpM2Vb8tbWc600mzIBeAdER2EcnXj_v3SV9EA/exec';
 
 async function fetchConReintento(url, options, maxIntentos = 3) {
   for (let i = 0; i < maxIntentos; i++) {
@@ -2591,11 +2591,12 @@ function renderizarTablaAlumnos() {
                 }
             </td>
             <td>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <input type="text" class="ecap-input" data-dni="${a.dni}" data-curso="${a.curso}" data-turno="${a.turno}"
-                           value="${(a.ecap || '').replace(/"/g, '&quot;')}"
-                           style="flex:1;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:0.8rem;"
-                           placeholder="Escribir mensaje ECAP...">
+                <div style="display:flex;align-items:center;gap:4px;">
+                    <textarea class="ecap-input" data-dni="${a.dni}" data-curso="${a.curso}" data-turno="${a.turno}"
+                              rows="1"
+                              style="flex:1;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:0.8rem;resize:none;overflow:hidden;line-height:1.3;"
+                              placeholder="Escribir mensaje ECAP...">${(a.ecap || '').replace(/"/g, '&quot;')}</textarea>
+                    <button type="button" class="ecap-toggle" onclick="toggleEcap(this)" style="background:none;border:none;cursor:pointer;padding:0 2px;font-size:0.7rem;color:#888;line-height:1;">&#9660;</button>
                     <span class="ecap-spinner"></span>
                     <span class="ecap-check" style="font-size:1.1rem;color:#28a745;display:${a.ecap ? 'inline' : 'none'};">&#10003;</span>
                 </div>
@@ -2974,6 +2975,19 @@ async function guardarECAP(dni, curso, turno, texto, callback) {
     } catch (err) {
         console.error('Error al guardar ECAP:', err);
         if (callback) callback(false);
+    }
+}
+
+function toggleEcap(btn) {
+    var ta = btn.parentElement.querySelector('.ecap-input');
+    if (ta.getAttribute('rows') === '1') {
+        ta.setAttribute('rows', '5');
+        ta.style.height = 'auto';
+        btn.innerHTML = '&#9650;';
+    } else {
+        ta.setAttribute('rows', '1');
+        ta.style.height = 'auto';
+        btn.innerHTML = '&#9660;';
     }
 }
 
@@ -4369,18 +4383,4 @@ function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docent
         <tr>
           <th class="th-sub" style="width:50px;">Interpreta</th>
           <th class="th-sub" style="width:50px;">Relaciona</th>
-          <th class="th-sub" style="width:44px;">Aplica</th>
-          <th class="th-sub" style="width:60px;">Participaci\u00F3n</th>
-          <th class="th-sub" style="width:52px;">Autonom\u00EDa</th>
-          <th class="th-sub" style="width:68px;">Realizaci\u00F3n de TP/Actividades</th>
-        </tr>
-      </thead>
-      <tbody>${filas}</tbody>
-    </table>
-    </div>
-    <div class="firmas">
-      <div class="firma-item">Firma de la familia:</div>
-      <div class="firma-item">Firma del Equipo de Gobierno y Conducci\u00F3n Escolar:</div>
-    </div>
-  </div>`;
-}
+ 
