@@ -4383,4 +4383,18 @@ function paginaInforme45(alumno, curso, turno, periodo, preceptor, notas, docent
         <tr>
           <th class="th-sub" style="width:50px;">Interpreta</th>
           <th class="th-sub" style="width:50px;">Relaciona</th>
- 
+          <th class="th-sub" style="width:44px;">Aplica</th>
+          <th class="th-sub" style="width:60px;">Participaci\u00F3n</th>
+          <th class="th-sub" style="width:52px;">Autonom\u00EDa</th>
+          <th class="th-sub" style="width:68px;">Realizaci\u00F3n de TP/Actividades</th>
+        </tr>
+      </thead>
+      <tbody>${filas}</tbody>
+    </table>
+    </div>
+    <div class="firmas">
+      <div class="firma-item">Firma de la familia:</div>
+      <div class="firma-item">Firma del Equipo de Gobierno y Conducci\u00F3n Escolar:</div>
+    </div>
+  </div>`;
+}
