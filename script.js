@@ -80,6 +80,7 @@ function normalizarNombre(str) {
         .toUpperCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "") // elimina tildes
+        .replace(/,/g, '')               // elimina comas
         .replace(/\s+/g, " ");           // colapsa espacios múltiples
 }
 
@@ -2179,7 +2180,7 @@ function _keyNotas(notas, materia) {
   return Object.keys(notas).find(k => norm(k) === mNorm) || materia;
 }
 
-async function generarPlanillaInformes() {
+async function generarPlanillaInformes(sinColor) {
   const curso     = document.getElementById('informe-curso').value;
   const periodo   = document.getElementById('informe-periodo').value;
   const turno     = document.getElementById('informe-turno').value;
@@ -2212,7 +2213,8 @@ async function generarPlanillaInformes() {
         curso, turno, periodo,
         preceptor,
         materias: todasMaterias,
-        areaMap
+        areaMap,
+        sinColor: !!sinColor
       })
     });
 
