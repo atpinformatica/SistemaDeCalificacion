@@ -2223,11 +2223,6 @@ async function generarPlanillaInformes(sinColor) {
       window.open(result.url, '_blank');
       cerrarModalInforme();
       validarYFiltrar();
-      if (sinColor && result.marco === 'sinServicio') {
-        alert('El marco quedó en 1px: el servicio avanzado "Google Sheets API" no está habilitado.\nEn Apps Script: panel izquierdo → + Servicios → Google Sheets API → Agregar → Guardar, y volvé a desplegar.');
-      } else if (sinColor && result.marco !== '3px') {
-        alert('El marco quedó en 1px. Diagnóstico: ' + result.marco + '.\nSi dice "error: ...", avisáme ese mensaje exacto.');
-      }
     } else {
       alert('Error: ' + (result.error || 'Error al crear la planilla'));
     }
