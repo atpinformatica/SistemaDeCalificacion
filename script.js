@@ -47,7 +47,7 @@ let frasesConfig = {};
 let fechasLimite = {};
 let llavesGuardadas = new Set();
 let _callbackDescargarComprobante = null;
-const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbye7Jwy2mi2kkomUKzV-5FrPg19-zCSl7n2aM3xT5h55zxnx0pAqlvwjtRcGyyowJ-cLA/exec';
+const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxnS9qNjshBrI81t9IzVON9E4EzZYLivWpM2Vb8tbWc600mzIBeAdER2EcnXj_v3SV9EA/exec';
 
 async function fetchConReintento(url, options, maxIntentos = 3) {
   for (let i = 0; i < maxIntentos; i++) {
@@ -2223,6 +2223,11 @@ async function generarPlanillaInformes(sinColor) {
       window.open(result.url, '_blank');
       cerrarModalInforme();
       validarYFiltrar();
+      if (sinColor && result.marco === 'sinServicio') {
+        alert('El marco quedó en 1px: el servicio avanzado "Google Sheets API" no está habilitado.\nEn Apps Script: panel izquierdo → + Servicios → Google Sheets API → Agregar → Guardar, y volvé a desplegar.');
+      } else if (sinColor && result.marco !== '3px') {
+        alert('El marco quedó en 1px. Diagnóstico: ' + result.marco + '.\nSi dice "error: ...", avisáme ese mensaje exacto.');
+      }
     } else {
       alert('Error: ' + (result.error || 'Error al crear la planilla'));
     }
