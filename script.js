@@ -85,6 +85,41 @@ function normalizarNombre(str) {
 }
 
 /**
+ * Normaliza un código de curso dejando solo letras y números.
+ * "4 C", "4C", "4° C" -> "4C"
+ */
+function normalizarCurso(str) {
+    return String(str || '')
+        .trim()
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^A-Z0-9]/g, '');
+}
+
+/**
+ * Devuelve true si el curso pertenece al turno seleccionado.
+ * Si el curso no está registrado en ningún turno, no bloquea (para no romper
+ * casos donde todavía no se cargaron alumnos).
+ */
+function cursoPerteneceAlTurno(curso, turno) {
+    const cursosPorTurno = baseDeDatosAlumnos || {};
+    const turnos = Object.keys(cursosPorTurno);
+    if (turnos.length === 0) return true;
+
+    const existeEnAlgunTurno = turnos.some(t =>
+        Object.keys(cursosPorTurno[t] || {}).some(c => normalizarCurso(c) === normalizarCurso(curso))
+    );
+    if (!existeEnAlgunTurno) return true;
+
+    const turnoKey = turnos.find(t => normalizarNombre(t) === normalizarNombre(turno || ''));
+    if (!turnoKey) return false;
+
+    return Object.keys(cursosPorTurno[turnoKey] || {})
+        .some(c => normalizarCurso(c) === normalizarCurso(curso));
+}
+
+/**
  * Carga todos los datos guardados desde Google Sheets al iniciar la app.
  * Usa el nombre normalizado como clave de búsqueda para evitar fallos
  * por tildes, espacios o mayúsculas distintas entre Sheets y la base local.
@@ -735,7 +770,7 @@ async function cargarAlumnos() {
     headerRow.innerHTML = '<th style="width: 50px;">N°</th><th>Apellido y Nombre</th>';
     
     if (tabActual === 'espacios') {
-        if (mostrarCualitativas) {
+        if (mostrarCualitativas && !(añoCurso === 5 && !periodo.includes("Bimestre"))) {
             criteriosCualitativos.forEach(crit => {
                 headerRow.innerHTML += `<th style="font-size: 0.75rem; min-width: 85px;">${crit}</th>`;
             });
@@ -747,8 +782,11 @@ async function cargarAlumnos() {
         if (añoCurso <= 4 && !periodo.includes("Bimestre")) {
             // Formato Cuatrimestral de 1ro a 4to
             headerRow.innerHTML += '<th>Observaciones Cualitativas (3 Frases y Nota)</th>';
+        } else if (añoCurso === 5 && !periodo.includes("Bimestre")) {
+            // Formato 5to año: 2 frases + nota personal (igual que 4to pero con 2)
+            headerRow.innerHTML += '<th>Observaciones (Frase y Nota Personal)</th>';
         } else {
-            // Formato de Criterios para 5to o bimestres
+            // Formato de Criterios para bimestres
             criteriosCualitativos.forEach(crit => {
                 headerRow.innerHTML += `<th style="font-size: 0.75rem;">${crit}</th>`;
             });
@@ -792,7 +830,7 @@ async function cargarAlumnos() {
 
         if (tabActual === 'espacios') {
             // --- PESTAÑA ESPACIOS CURRICULARES ---
-            if (mostrarCualitativas) {
+            if (mostrarCualitativas && !(añoCurso === 5 && !periodo.includes("Bimestre"))) {
                 criteriosCualitativos.forEach(crit => {
                     const valC = persistido[crit] || "-";
                     html += `<td><select class="nota-input select-nota-cualitativa" data-criterio="${crit}" style="font-size:0.85rem;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', '${crit}', this.value)">
@@ -819,7 +857,20 @@ async function cargarAlumnos() {
             
 
 
-            if (añoCurso >= 5 || periodo.includes("Bimestre")) {
+            if (añoCurso === 5 && !periodo.includes("Bimestre")) {
+                // Formato 5to año: 2 frases + nota personal (igual que 4to pero con 2)
+                html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
+                for(let p=1; p<=2; p++) {
+                    const valP = persistido[`sel_${p}`] || "";
+                    const opts = obtenerFrasesDropdown(curso, materia, p) || frases;
+                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
+                                <option value="">Frase ${p}...</option>
+                                ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
+                             </select>`;
+                }
+                html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:40px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
+                         </div></td>`;
+            } else if (añoCurso >= 5 || periodo.includes("Bimestre")) {
                 const valP = persistido[`sel_1`] || "";
                 const frasesAC = obtenerFrasesDropdown(curso, materia, 1) || frases;
                 html += `<td><div style="display:flex; flex-direction:column; gap:3px;">
@@ -858,8 +909,21 @@ async function cargarAlumnos() {
                 }
                 html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:45px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
                          </div></td>`;
+            } else if (añoCurso === 5 && !periodo.includes("Bimestre")) {
+                // Formato 5to año: 2 frases + nota personal (igual que 4to pero con 2)
+                html += `<td><div style="display:flex; flex-direction:column; gap:3px;">`;
+                for(let p=1; p<=2; p++) {
+                    const valP = persistido[`sel_${p}`] || "";
+                    const opts = obtenerFrasesDropdown(curso, materia, p) || frases;
+                    html += `<select class="nota-input select-obs-multiple" data-pos="${p}" style="font-size:0.85rem;min-width:240px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'sel_${p}', this.value)">
+                                <option value="">Frase ${p}...</option>
+                                ${opts.map(f => `<option value="${f}" ${valP===f?'selected':''}>* ${f}</option>`).join('')}
+                             </select>`;
+                }
+                html += `<textarea class="nota-input text-obs" placeholder="Nota personal..." style="height:45px;" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', 'observacion', this.value)">${persistido.observacion || ""}</textarea>
+                         </div></td>`;
             } else {
-                // Formato de CRITERIOS (Bimestres o 5to)
+                // Formato de CRITERIOS (Bimestres)
                 criteriosCualitativos.forEach(crit => {
                     const valC = persistido[crit] || "-";
                     html += `<td><select class="nota-input select-nota-cualitativa" data-criterio="${crit}" ${disabledAttr} ${bgStyle} onchange="actualizarMemoria('${llaveID}', '${alumno.dni}', '${crit}', this.value)">
@@ -2112,6 +2176,18 @@ async function generarInformes() {
 
   if (!curso || !periodo || !turno) { alert('Completá Curso, Turno y Período.'); return; }
 
+  if (!cursoPerteneceAlTurno(curso, turno)) {
+    alert('Este turno no corresponde con curso seleccionado');
+    return;
+  }
+
+  // Convertir periodo al formato que guarda la hoja
+  let periodoHoja = periodo;
+  if (periodo === '1') periodoHoja = '1er Cuatrimestre';
+  else if (periodo === '2') periodoHoja = '2do Cuatrimestre';
+  else if (periodo === '1_Bimestre') periodoHoja = '1er Bimestre';
+  else if (periodo === '2_Bimestre') periodoHoja = '2do Bimestre';
+
   const btn = document.getElementById('btn-generar-informes');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando datos...';
@@ -2121,7 +2197,7 @@ async function generarInformes() {
       + `&correo=${encodeURIComponent(sesionActual.correo)}`
       + `&curso=${encodeURIComponent(curso)}`
       + `&turno=${encodeURIComponent(turno)}`
-      + `&periodo=${encodeURIComponent(periodo)}`;
+      + `&periodo=${encodeURIComponent(periodoHoja)}`;
 
     const resp = await fetch(url, { method:'GET', mode:'cors' });
     const data = await resp.json();
@@ -2187,6 +2263,11 @@ async function generarPlanillaInformes(sinColor) {
   const preceptor = document.getElementById('informe-preceptor').value.trim();
 
   if (!curso || !periodo || !turno) { alert('Completá Curso, Turno y Período.'); return; }
+
+  if (!cursoPerteneceAlTurno(curso, turno)) {
+    alert('Este turno no corresponde con curso seleccionado');
+    return;
+  }
 
   const btn = document.getElementById('btn-generar-planilla');
   btn.disabled = true;
